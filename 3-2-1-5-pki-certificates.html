@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>3.2.1–3.2.5 – PKI & Digital Certificates – SY0-701</title>
+  <style>
+    :root {
+      --bg-main: #020617;
+      --bg-card: #020617;
+      --bg-panel: #0b1220;
+      --accent: #38bdf8;
+      --accent-strong: #fbbf24;
+      --accent-soft: rgba(56, 189, 248, 0.25);
+      --accent-green: #4ade80;
+      --accent-red: #f97373;
+      --text-main: #e5e7eb;
+      --text-soft: #9ca3af;
+      --border-soft: rgba(148, 163, 184, 0.5);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top left, #1d3557 0, #020617 45%, #000 100%);
+      color: var(--text-main);
+      line-height: 1.7;
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      padding: 18px 16px 10px;
+      background: linear-gradient(
+        to bottom,
+        rgba(15, 23, 42, 0.98),
+        rgba(15, 23, 42, 0.9),
+        transparent
+      );
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid rgba(148, 163, 184, 0.25);
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: clamp(1.7rem, 3vw, 2.3rem);
+      color: var(--accent-strong);
+      text-shadow: 0 0 14px rgba(251, 191, 36, 0.6);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+    }
+
+    header p {
+      margin: 4px 0 0;
+      text-align: center;
+      color: var(--text-soft);
+      font-size: 0.96rem;
+    }
+
+    .badge-row {
+      margin-top: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px;
+      font-size: 0.78rem;
+    }
+
+    .badge {
+      border-radius: 999px;
+      padding: 4px 10px;
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      color: var(--text-soft);
+    }
+    .badge span {
+      color: var(--accent-strong);
+      font-weight: 600;
+    }
+
+    main {
+      max-width: 1160px;
+      margin: 10px auto 40px;
+      padding: 0 12px 32px;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 3.2fr) minmax(0, 2.3fr);
+      gap: 14px;
+    }
+    @media (max-width: 960px) {
+      .layout {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .card {
+      background: radial-gradient(circle at top right, rgba(56, 189, 248, 0.1), transparent 55%),
+                  linear-gradient(145deg, #020617, #020617);
+      border-radius: 14px;
+      padding: 14px 16px;
+      margin: 9px 0;
+      border: 1px solid rgba(148, 163, 184, 0.55);
+      box-shadow: 0 14px 40px rgba(15, 23, 42, 0.9);
+      position: relative;
+      overflow: hidden;
+    }
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: -40%;
+      background: radial-gradient(circle at top left,
+        rgba(56, 189, 248, 0.15),
+        transparent 65%);
+      opacity: 0;
+      transition: opacity 0.2s ease-out;
+      pointer-events: none;
+    }
+    .card:hover::before { opacity: 1; }
+
+    .section-tag {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
+      color: var(--text-soft);
+      margin-bottom: 3px;
+    }
+
+    h2, h3 {
+      margin: 0 0 6px;
+      color: var(--accent);
+      font-size: 1.12rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    p { margin: 4px 0 8px; font-size: 0.95rem; }
+
+    .key-term {
+      background: rgba(15, 23, 42, 0.9);
+      border-left: 3px solid var(--accent);
+      padding: 7px 9px;
+      margin: 6px 0;
+      border-radius: 6px;
+      font-size: 0.9rem;
+    }
+    .key-term strong { color: var(--accent-strong); }
+
+    .note, .warning, .tip {
+      border-radius: 7px;
+      padding: 6px 8px;
+      font-size: 0.86rem;
+    }
+    .note {
+      background: rgba(37, 99, 235, 0.15);
+      border: 1px dashed rgba(59, 130, 246, 0.7);
+    }
+    .warning {
+      background: rgba(248, 113, 113, 0.15);
+      border: 1px solid rgba(248, 113, 113, 0.7);
+    }
+    .tip {
+      background: rgba(52, 211, 153, 0.12);
+      border: 1px solid rgba(52, 211, 153, 0.7);
+    }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 0.86rem;
+      background: rgba(15, 23, 42, 0.9);
+      padding: 1px 4px;
+      border-radius: 4px;
+      border: 1px solid rgba(148, 163, 184, 0.45);
+    }
+
+    pre {
+      background: #020617;
+      padding: 9px;
+      overflow-x: auto;
+      border-radius: 10px;
+      border: 1px solid var(--border-soft);
+      font-size: 0.8rem;
+      margin: 6px 0;
+    }
+
+    .diagram-title {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--accent-strong);
+      margin-bottom: 2px;
+    }
+    .diagram-box {
+      background: rgba(15, 23, 42, 0.9);
+      border-radius: 10px;
+      padding: 7px 9px;
+      margin-top: 4px;
+      border: 1px dashed var(--border-soft);
+      font-size: 0.82rem;
+    }
+
+    .gloss {
+      border-bottom: 1px dotted rgba(148, 163, 184, 0.9);
+      cursor: help;
+      position: relative;
+    }
+    .gloss::after {
+      content: attr(data-tip);
+      position: absolute;
+      left: 0;
+      top: 130%;
+      min-width: 160px;
+      max-width: 260px;
+      background: #020617;
+      padding: 6px 7px;
+      border-radius: 8px;
+      border: 1px solid rgba(148, 163, 184, 0.7);
+      color: var(--text-main);
+      font-size: 0.78rem;
+      line-height: 1.4;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(3px);
+      transition: opacity 0.15s ease, transform 0.15s ease;
+      z-index: 20;
+    }
+    .gloss:hover::after {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .flex-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin: 4px 0;
+      font-size: 0.8rem;
+    }
+    .chip {
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.6);
+    }
+
+    .story-callout {
+      border-left: 3px solid var(--accent-strong);
+      padding-left: 9px;
+      margin: 6px 0;
+      font-size: 0.9rem;
+    }
+    .story-speaker {
+      font-weight: 600;
+      color: var(--accent-strong);
+    }
+
+    .highlight {
+      background: rgba(56, 189, 248, 0.18);
+      border-radius: 5px;
+      padding: 1px 3px;
+    }
+
+    .small { font-size: 0.8rem; color: var(--text-soft); }
+
+    /* Expander */
+    .expander {
+      margin: 6px 0;
+      border-radius: 10px;
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid rgba(148, 163, 184, 0.45);
+      overflow: hidden;
+    }
+    .expander-header {
+      padding: 6px 9px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+    .expander-header:hover { background: rgba(15, 23, 42, 0.9); }
+    .expander-body {
+      padding: 6px 9px 8px;
+      border-top: 1px solid rgba(148, 163, 184, 0.35);
+      display: none;
+      font-size: 0.88rem;
+    }
+    .expander-icon {
+      font-size: 0.9rem;
+      transition: transform 0.15s ease;
+    }
+    .expander.open .expander-body { display: block; }
+    .expander.open .expander-icon { transform: rotate(90deg); }
+
+    /* Quiz */
+    .quiz-question {
+      margin-bottom: 14px;
+      padding: 9px;
+      border-radius: 10px;
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid var(--border-soft);
+      font-size: 0.9rem;
+    }
+    .quiz-question strong { color: var(--accent-strong); }
+
+    .answer {
+      margin-top: 5px;
+      display: none;
+      padding: 6px 8px;
+      border-radius: 8px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(56, 189, 248, 0.7);
+      font-size: 0.86rem;
+    }
+
+    .quiz-btn {
+      margin-top: 4px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--accent);
+      background: rgba(15, 23, 42, 0.9);
+      color: var(--accent-strong);
+      font-size: 0.78rem;
+      cursor: pointer;
+    }
+    .quiz-btn:hover { background: var(--accent-soft); }
+
+    .score { font-size: 0.86rem; margin-bottom: 6px; color: var(--accent-green); }
+
+    .cta {
+      margin-top: 8px;
+      padding: 7px 9px;
+      border-radius: 10px;
+      background: rgba(37, 99, 235, 0.2);
+      border: 1px dashed rgba(59, 130, 246, 0.8);
+      font-size: 0.9rem;
+    }
+
+    .pulse {
+      animation: pulse 1.7s infinite;
+    }
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.7); }
+      70% { box-shadow: 0 0 0 11px rgba(56, 189, 248, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0); }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>3.2.1–3.2.5 🏛️ Public Key Infrastructure (PKI)</h1>
+    <p>How the internet decides “this key really belongs to THAT website or person.”</p>
+    <div class="badge-row">
+      <div class="badge"><span>Domain:</span> 3.2 – PKI & Certificates</div>
+      <div class="badge"><span>Exam:</span> CompTIA Security+ SY0‑701</div>
+      <div class="badge"><span>Topics:</span> CAs • X.509 • Root of Trust • CSR • SAN</div>
+    </div>
+  </header>
+
+  <main>
+    <!-- Overview -->
+    <section class="layout">
+      <article class="card">
+        <div class="section-tag">Big Picture</div>
+        <h2>🧠 What Problem Does PKI Solve?</h2>
+        <p>
+          Public key cryptography lets us encrypt and sign data using <span class="highlight">public/private key pairs</span>, 
+          but by itself it does <em>not</em> say who the key really belongs to.[web:146][web:185]
+        </p>
+        <p>
+          <strong>Public Key Infrastructure (PKI)</strong> is the system of 
+          <span class="gloss" data-tip="Organizations whose job is to vouch for identities and sign certificates.">Certificate Authorities (CAs)</span>, 
+          policies, and tools that link a <em>public key</em> to a real‑world identity using 
+          <span class="highlight">digital certificates</span>.[web:173][web:179][web:182][web:185]
+        </p>
+        <div class="key-term">
+          <strong>PKI 🏗️</strong> – all the technology, people, and rules used to issue, manage, and trust digital certificates.  
+          <br />
+          <strong>CA 👩‍⚖️</strong> – a trusted “ID office” that signs certificates to say “this public key belongs to this subject.”[web:173][web:176][web:185]
+        </div>
+        <p>
+          Without PKI, your browser could encrypt to <em>some</em> key, but you wouldn’t know if it’s really your bank or 
+          a hacker’s fake site.
+        </p>
+      </article>
+
+      <aside class="card">
+        <div class="section-tag">PKI Cast</div>
+        <h2>🎭 Main Characters</h2>
+        <ul>
+          <li><strong>End entity</strong> – website, user, device that needs a certificate.[web:173][web:176]</li>
+          <li><strong>CA</strong> – issues and signs certificates.[web:173][web:176][web:185]</li>
+          <li><strong>RA</strong> – registration authority, helps verify identity for the CA.[web:173]</li>
+          <li><strong>Repository</strong> – where certs and revocation info (CRLs, OCSP) are published.[web:173][web:176]</li>
+        </ul>
+        <div class="diagram-box">
+          <div class="diagram-title">Simple PKI Flow</div>
+<pre>
+User  <----trusts----  Root CA  ----signs---->  Intermediate CA
+  ^                                          \
+  |                                           \---signs---> Website Cert
+  |                                                    (used by HTTPS)[web:173][web:176][web:182]
+</pre>
+          <p class="small">Your browser stores trusted root CAs; everything else is trusted by chaining back to them.</p>
+        </div>
+      </aside>
+    </section>
+
+    <!-- 3.2.1 Certificate Authorities -->
+    <section class="card">
+      <div class="section-tag">3.2.1 Certificate Authorities</div>
+      <h2>🏛️ Certificate Authorities – The ID Offices of the Internet</h2>
+      <p>
+        A <strong>Certificate Authority (CA)</strong> is a trusted organization whose job is to:
+      </p>
+      <ul>
+        <li>Verify identities (individuals, organizations, domains).</li>
+        <li>Issue and sign certificates linking identities to public keys.</li>
+        <li>Publish and manage those certificates and revocation information.[web:173][web:176][web:185]</li>
+      </ul>
+      <p>
+        Your browser and OS come with a built‑in list of <strong>trusted root CA certificates</strong>. If a website’s
+        certificate chains back to one of those, the browser shows a padlock and treats it as trusted.[web:176][web:182][web:185]
+      </p>
+
+      <div class="diagram-box">
+        <div class="diagram-title">High‑Level Web PKI Story</div>
+<pre>
+1) CA has its own key pair and root certificate (self-signed).
+2) Website generates key pair and CSR with its public key.
+3) CA verifies the website's identity (domain, organization).
+4) CA signs the website's public key and info -> site certificate.
+5) Browser connects to site, receives its certificate.
+6) Browser checks signature against trusted CA roots/intermediates.
+7) If valid, browser shows "secure" and uses the public key for TLS.[web:173][web:176][web:185]
+</pre>
+      </div>
+
+      <div class="expander" onclick="toggleExpander(event)">
+        <div class="expander-header">
+          <span>🏢 Private CAs vs Public CAs (Exam‑style)</span>
+          <span class="expander-icon">▶</span>
+        </div>
+        <div class="expander-body">
+          <ul>
+            <li><strong>Private / internal CA</strong> – run by a company for its own users/devices (for example, internal VPN, Wi‑Fi, code). Trusted only inside that organization’s environment.</li>
+            <li><strong>Public / third‑party CA</strong> – commercial CA trusted by many browsers and OSes (DigiCert, Let’s Encrypt, etc.). Used for public‑facing websites and B2B services.[web:176][web:185]</li>
+          </ul>
+          <p>
+            On the exam, “internal services only, not accessible from internet” → likely use a <strong>private CA</strong>.  
+            “Public website that must be trusted by customers worldwide” → use a <strong>public CA</strong>.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3.2.2 Digital Certificates -->
+    <section class="card">
+      <div class="section-tag">3.2.2 Digital Certificates</div>
+      <h2>📜 Digital Certificates – ID Cards for Keys</h2>
+      <p>
+        A <strong>digital certificate</strong> (usually X.509 format) is like an ID card that says:
+      </p>
+      <ul>
+        <li>“This public key belongs to this subject (website/user/device).”</li>
+        <li>“This CA vouches for that statement.”</li>
+      </ul>
+      <p>
+        The certificate is digitally signed by the issuing CA, so tampering or fake certificates can be detected.[web:173][web:176][web:179][web:182]
+      </p>
+
+      <div class="key-term">
+        <strong>X.509 certificate 📜</strong> – standard format for certificates used on the web and in PKI.[web:173][web:176][web:179][web:182]
+      </div>
+
+      <div class="diagram-box">
+        <div class="diagram-title">Typical Certificate Fields</div>
+<pre>
+Subject            -> Who the cert is for (e.g., www.example.com, or a user)[web:176][web:179]
+Subject Public Key -> The public key being certified[web:176][web:179]
+Issuer             -> The CA that issued the certificate[web:176][web:173]
+Validity Period    -> Not Before / Not After dates[web:176][web:179]
+Serial Number      -> Unique identifier[web:176]
+Signature          -> CA's digital signature over all of the above[web:173][web:176][web:179]
+Extensions         -> Extra info: key usage, SAN, CRL/OCSP URLs, etc.[web:173][web:176]
+</pre>
+      </div>
+
+      <div class="note">
+        A certificate <strong>does not</strong> contain the private key. The private key stays on the owner’s system; the certificate only holds the <em>public</em> key plus identity info and the CA’s signature.[web:176][web:179]
+      </div>
+    </section>
+
+    <!-- 3.2.3 Root of Trust -->
+    <section class="card">
+      <div class="section-tag">3.2.3 Root of Trust</div>
+      <h2>🌳 Root of Trust & Chain of Trust</h2>
+      <p>
+        PKI trust works like a family tree. At the top is a <strong>root CA</strong> that everyone explicitly trusts. 
+        Below that are <strong>intermediate CAs</strong>, and at the bottom are <strong>leaf certificates</strong> (websites, users, devices).[web:173][web:176][web:182]
+      </p>
+      <div class="diagram-box">
+        <div class="diagram-title">Hierarchy Model</div>
+<pre>
+        [ Root CA ]   (self-signed, stored in trust store)
+             |
+       ----------------
+       |              |
+ [Intermediate CA1]  [Intermediate CA2]
+       |                 |
+   [www.example.com]  [vpn.company.com]
+
+If you trust Root CA, you can trust all certs with a valid chain down from it.[web:173][web:176][web:182]
+</pre>
+      </div>
+      <p>
+        Browsers and OSes ship with many root CA certificates preinstalled. That list is the user’s 
+        <strong>root of trust</strong>.[web:176][web:182][web:185]
+      </p>
+
+      <div class="expander" onclick="toggleExpander(event)">
+        <div class="expander-header">
+          <span>🧱 Single CA vs Hierarchical PKI</span>
+          <span class="expander-icon">▶</span>
+        </div>
+        <div class="expander-body">
+          <ul>
+            <li><strong>Single CA</strong> – one CA directly issues all end‑entity certificates. Simple, often used internally. But if that CA is compromised, the entire PKI collapses.</li>
+            <li><strong>Hierarchical model</strong> – root CA only signs intermediates; intermediates sign leaf certs. Root can be kept offline; compromise of one intermediate doesn’t destroy the whole tree.[web:173][web:176][web:182]</li>
+          </ul>
+          <p>
+            This chain from leaf → intermediate → root is called the <strong>certificate chain</strong> or 
+            <strong>chain of trust</strong>. Verifying that chain is a key step in TLS handshakes.
+          </p>
+        </div>
+      </div>
+
+      <div class="expander" onclick="toggleExpander(event)">
+        <div class="expander-header">
+          <span>🧾 Self‑Signed Certificates (Dev or Danger?)</span>
+          <span class="expander-icon">▶</span>
+        </div>
+        <div class="expander-body">
+          <p>
+            A <strong>self‑signed certificate</strong> is signed by the same entity it’s issued to (subject = issuer).
+            Useful for:
+          </p>
+          <ul>
+            <li>Lab environments</li>
+            <li>Small internal tools</li>
+            <li>Temporary testing</li>
+          </ul>
+          <p>
+            But because no trusted CA vouches for it, browsers mark it as “untrusted.” You can manually accept it, but 
+            self‑signed certs should not protect critical public services.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3.2.4 CSR -->
+    <section class="card">
+      <div class="section-tag">3.2.4 Certificate Signing Requests</div>
+      <h2>📨 CSRs – Asking a CA for a Certificate</h2>
+      <p>
+        To get a certificate, an applicant generates a key pair locally, then creates a 
+        <strong>Certificate Signing Request (CSR)</strong> containing the <em>public key</em> and identity info, and sends it to the CA.[web:174][web:177][web:180][web:186]
+      </p>
+
+      <div class="diagram-box">
+        <div class="diagram-title">CSR Contents (PKCS#10 style)</div>
+<pre>
+- Subject info (DN): CN, O, OU, L, ST, C[web:174][web:180]
+- Public key (to be certified)[web:174][web:176]
+- Requested extensions (e.g., SAN names)[web:174][web:176][web:186]
+- Self-signature with private key (proves you control the private key)[web:174][web:177]
+</pre>
+      </div>
+
+      <div class="story-callout">
+        <div class="story-speaker">Story: Applying for a Digital Passport</div>
+        You fill out a form with your name, address, and photo (identity), and include a way
+        for them to contact you. Then you sign the form. The government office checks the info,
+        confirms you are really you, and then prints and signs your passport.
+      </div>
+
+      <p>
+        Similarly, a CSR is like that form; the CA reviews it, verifies you’re allowed to use that domain 
+        or identity, and then issues a signed certificate.
+      </p>
+    </section>
+
+    <!-- 3.2.5 Subject Name Attributes, SAN -->
+    <section class="card">
+      <div class="section-tag">3.2.5 Subject Name & SAN</div>
+      <h2>🌐 CN, SAN & Wildcards – Which Names Does the Cert Cover?</h2>
+      <p>
+        Certificates need to state <strong>which hostnames or identities</strong> they cover. Historically, the 
+        <strong>Common Name (CN)</strong> field was used for the main hostname, but modern best practice is to
+        put hostnames in the <strong>Subject Alternative Name (SAN)</strong> extension.[web:176][web:179][web:185]
+      </p>
+      <div class="key-term">
+        <strong>CN (Common Name)</strong> – older way to store the main name (for example, <code>www.example.com</code>).  
+        <br />
+        <strong>SAN (Subject Alternative Name)</strong> – extension that can list multiple DNS names, IPs, or even emails.[web:175][web:178][web:176][web:187]
+      </div>
+
+      <div class="diagram-box">
+        <div class="diagram-title">SAN Examples</div>
+<pre>
+DNS Names in SAN:
+  - www.example.com
+  - example.com
+  - api.example.com
+  - members.example.org[web:175][web:178][web:181]
+
+Wildcard example:
+  - *.example.com  -> covers a.example.com, api.example.com, login.example.com, etc.[web:175][web:178][web:187]
+</pre>
+      </div>
+      <p>
+        Browsers now primarily check the SAN list to see if the certificate matches the hostname you typed in the URL.[web:176][web:185]
+      </p>
+
+      <div class="expander" onclick="toggleExpander(event)">
+        <div class="expander-header">
+          <span>⭐ Wildcard vs Explicit SAN Entries</span>
+          <span class="expander-icon">▶</span>
+        </div>
+        <div class="expander-body">
+          <ul>
+            <li><strong>Wildcard cert (for example, *.example.com)</strong> – one certificate can cover many first‑level subdomains like <code>app.example.com</code>, <code>mail.example.com</code>.[web:178][web:187]</li>
+            <li><strong>SAN cert</strong> – lists specific hostnames and/or wildcard names in SAN (for example, <code>www.example.com</code>, <code>api.example.net</code>, <code>*.dev.example.com</code>). [web:175][web:178][web:181][web:184]</li>
+          </ul>
+          <p>
+            On the exam, if they mention protecting multiple different FQDNs on one cert, think <strong>SAN</strong>.  
+            If they mention covering any subdomain under one domain, think <strong>wildcard</strong>.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- PKI Story -->
+    <section class="card">
+      <div class="section-tag">Analogy Story</div>
+      <h2>🏙️ Story – City of Trusted ID Offices</h2>
+      <p>
+        Imagine a futuristic city 🌃 where everyone uses secure doors and digital badges to get into buildings.
+      </p>
+      <div class="story-callout">
+        <div class="story-speaker">Root City Hall 🏛️</div>
+        At the top is “Root City Hall,” the most trusted ID office. It gives special stamps to some district offices 
+        (intermediate CAs) but rarely deals directly with citizens.
+      </div>
+      <div class="story-callout">
+        <div class="story-speaker">District Offices 🏬</div>
+        Each district office issues ID cards to citizens and companies in its area. Their power comes from
+        the stamp from Root City Hall, so citizens trust their IDs.
+      </div>
+      <div class="story-callout">
+        <div class="story-speaker">You & Your Company 🧑‍💻</div>
+        Your company wants an official building pass (certificate) for <code>www.example.com</code>. You:
+        fill out forms (CSR), show documents (domain proof), and get an ID card with:
+        your name, address, photo, and a hologram seal (CA signature).
+      </div>
+      <p>
+        When visitors arrive, security guards (browsers) check:
+      </p>
+      <ul>
+        <li>Does this building pass chain back to a trusted ID office (root)?</li>
+        <li>Does the name on the pass match the building I walked into (SAN/hostname)?</li>
+        <li>Is the pass still valid (dates, revocation)?</li>
+      </ul>
+      <p>
+        If all checks pass, doors open and encrypted conversations begin. If anything is off, alarms and warning pages appear.
+      </p>
+    </section>
+
+    <!-- Exam Tips -->
+    <section class="card">
+      <div class="section-tag">Exam Relevance</div>
+      <h2>🎯 Exam Tips – How They’ll Try to Trick You</h2>
+      <ul>
+        <li>“Which PKI component issues and signs certificates?” → <strong>Certificate Authority (CA)</strong>.</li>
+        <li>“Which file is sent to a CA to request a certificate?” → <strong>CSR</strong> (Certificate Signing Request).[web:174][web:177][web:180][web:186]</li>
+        <li>“Which field lists multiple DNS names for a cert?” → <strong>SAN</strong>.</li>
+        <li>“Which certificate is at the top of the trust chain?” → <strong>Root CA certificate (self‑signed)</strong>.[web:173][web:176][web:182]</li>
+        <li>“Need internal‑only trust in a Windows domain?” → Probably <strong>private CA</strong> integrated with Active Directory.[web:173][web:176]</li>
+      </ul>
+      <div class="cta pulse">
+        Say out loud: “CA issues certificates, CSR requests them, CN/SAN say what names they cover, root CA is my ultimate boss of trust.”
+      </div>
+    </section>
+
+    <!-- Quiz -->
+    <section class="card">
+      <div class="section-tag">Interactive Quiz</div>
+      <h2>📝 Quiz – Click to Reveal Answers</h2>
+      <div class="score" id="scoreLabel">Score: 0 correct</div>
+
+      <div class="quiz-question">
+        <strong>Q1.</strong> Which role is responsible for <em>signing</em> and issuing public key certificates?
+        <ul>
+          <li>A. Repository</li>
+          <li>B. Registration Authority (RA)</li>
+          <li>C. Certificate Authority (CA)</li>
+          <li>D. End Entity</li>
+        </ul>
+        <button class="quiz-btn" onclick="revealAnswer('q1')">Show Answer</button>
+        <div class="answer" id="q1">
+          <strong>Answer: C – Certificate Authority.</strong><br />
+          The CA reviews CSRs and signs certificates that bind subjects to public keys.[web:173][web:176][web:185]
+        </div>
+      </div>
+
+      <div class="quiz-question">
+        <strong>Q2.</strong> What does a digital certificate primarily bind together?
+        <ul>
+          <li>A. A private key and a password</li>
+          <li>B. A public key and an identity</li>
+          <li>C. A symmetric key and a hash</li>
+          <li>D. Two public keys</li>
+        </ul>
+        <button class="quiz-btn" onclick="revealAnswer('q2')">Show Answer</button>
+        <div class="answer" id="q2">
+          <strong>Answer: B – A public key and an identity.</strong><br />
+          Certificates state “this public key belongs to this subject,” signed by a CA.[web:173][web:176][web:179][web:182]
+        </div>
+      </div>
+
+      <div class="quiz-question">
+        <strong>Q3.</strong> Which file does a web server create and send to a CA when requesting a new TLS certificate?
+        <ul>
+          <li>A. CRL</li>
+          <li>B. CSR</li>
+          <li>C. OCSP</li>
+          <li>D. PEM</li>
+        </ul>
+        <button class="quiz-btn" onclick="revealAnswer('q3')">Show Answer</button>
+        <div class="answer" id="q3">
+          <strong>Answer: B – CSR.</strong><br />
+          A Certificate Signing Request includes the public key and identity info for the CA to sign.[web:174][web:177][web:180][web:186]
+        </div>
+      </div>
+
+      <div class="quiz-question">
+        <strong>Q4.</strong> A company wants one certificate that covers <code>www.example.com</code> and <code>api.example.com</code> and <code>portal.example.net</code>. Which feature is MOST appropriate?
+        <ul>
+          <li>A. Only CN field</li>
+          <li>B. SAN with multiple DNS entries</li>
+          <li>C. OCSP</li>
+          <li>D. CRL</li>
+        </ul>
+        <button class="quiz-btn" onclick="revealAnswer('q4')">Show Answer</button>
+        <div class="answer" id="q4">
+          <strong>Answer: B – SAN with multiple DNS entries.</strong><br />
+          SAN allows multiple hostnames to be listed under one certificate.[web:175][web:178][web:181][web:187]
+        </div>
+      </div>
+
+      <div class="quiz-question">
+        <strong>Q5.</strong> In a hierarchical PKI, which statement is TRUE?
+        <ul>
+          <li>A. The root CA signs end‑entity certs directly only.</li>
+          <li>B. Intermediate CAs sign end‑entity certs; roots sign intermediates.</li>
+          <li>C. End entities sign root certificates.</li>
+          <li>D. No one signs the root CA certificate.</li>
+        </ul>
+        <button class="quiz-btn" onclick="revealAnswer('q5')">Show Answer</button>
+        <div class="answer" id="q5">
+          <strong>Answer: B.</strong><br />
+          Root CAs typically sign intermediate CAs, which then sign leaf certificates; the root is self‑signed.[web:173][web:176][web:182]
+        </div>
+      </div>
+
+      <button class="quiz-btn" onclick="resetScore()">Reset Score</button>
+    </section>
+
+    <!-- Recap -->
+    <section class="card">
+      <div class="section-tag">Recap & Study Plan</div>
+      <h2>🔁 Recap – PKI in One Breath</h2>
+      <ul>
+        <li>PKI = system of CAs, policies, and tools to bind public keys to identities via certificates.</li>
+        <li>Certificates (X.509) hold the public key, subject info, issuer info, validity, and CA signature.</li>
+        <li>Root and intermediate CAs form a chain of trust.</li>
+        <li>CSRs request certs; SAN lists names the cert is valid for.</li>
+      </ul>
+      <div class="cta">
+        Study tip: Draw the CA hierarchy, a CSR flow, and a certificate with CN + SAN. Re‑draw 2–3 times over a week to burn it into memory.
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // Expanders
+    function toggleExpander(event) {
+      const container = event.currentTarget;
+      container.classList.toggle('open');
+    }
+
+    // Quiz scoring
+    let score = 0;
+    function revealAnswer(id) {
+      const ans = document.getElementById(id);
+      if (!ans) return;
+      const wasHidden = ans.style.display !== 'block';
+      ans.style.display = wasHidden ? 'block' : 'none';
+      if (wasHidden && !ans.dataset.counted) {
+        score++;
+        ans.dataset.counted = 'true';
+        const label = document.getElementById('scoreLabel');
+        if (label) label.textContent = 'Score: ' + score + ' correct';
+      }
+    }
+
+    function resetScore() {
+      score = 0;
+      const label = document.getElementById('scoreLabel');
+      if (label) label.textContent = 'Score: 0 correct';
+      document.querySelectorAll('.answer').forEach(a => {
+        a.style.display = 'none';
+        delete a.dataset.counted;
+      });
+    }
+  </script>
+</body>
+</html>
