@@ -1,0 +1,697 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>3.1.1–3.1.3 Cryptography – Security+ SY0-701</title>
+  <style>
+    :root {
+      --bg1: #0f172a;
+      --bg2: #1e293b;
+      --accent: #38bdf8;
+      --accent-soft: rgba(56, 189, 248, 0.25);
+      --accent-strong: #fbbf24;
+      --danger: #f97373;
+      --good: #4ade80;
+      --text-main: #e5e7eb;
+      --text-soft: #9ca3af;
+      --card-bg: #020617;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: radial-gradient(circle at top left, #1d3557, #020617 55%);
+      color: var(--text-main);
+      line-height: 1.6;
+    }
+
+    header {
+      padding: 24px 16px 12px;
+      text-align: center;
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: linear-gradient(to bottom, rgba(15, 23, 42, 0.98), rgba(15, 23, 42, 0.90), transparent);
+      backdrop-filter: blur(6px);
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: clamp(1.8rem, 3vw, 2.4rem);
+      color: var(--accent-strong);
+      text-shadow: 0 0 10px rgba(251, 191, 36, 0.4);
+    }
+
+    header p {
+      margin: 6px 0 0;
+      color: var(--text-soft);
+      font-size: 0.95rem;
+    }
+
+    .badge-row {
+      margin-top: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px;
+      font-size: 0.78rem;
+    }
+
+    .badge {
+      border-radius: 999px;
+      padding: 4px 10px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      color: var(--text-soft);
+    }
+
+    .badge span {
+      color: var(--accent-strong);
+    }
+
+    main {
+      max-width: 1100px;
+      margin: 16px auto 40px;
+      padding: 0 12px 40px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+      gap: 16px;
+    }
+
+    @media (max-width: 900px) {
+      .grid {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .card {
+      background: linear-gradient(135deg, rgba(15, 23, 42, 0.97), rgba(15, 23, 42, 0.92));
+      border-radius: 14px;
+      padding: 16px 18px;
+      margin: 10px 0;
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      box-shadow: 0 12px 35px rgba(15, 23, 42, 0.8);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at top right, rgba(56, 189, 248, 0.16), transparent 60%);
+      opacity: 0;
+      transition: opacity 0.2s ease-out;
+      pointer-events: none;
+    }
+
+    .card:hover::before {
+      opacity: 1;
+    }
+
+    .card h2, .card h3 {
+      margin-top: 0;
+      color: var(--accent);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 1.1rem;
+    }
+
+    .pill {
+      font-size: 0.7rem;
+      padding: 2px 7px;
+      border-radius: 999px;
+      background: rgba(56, 189, 248, 0.15);
+      border: 1px solid rgba(56, 189, 248, 0.6);
+      color: var(--accent-strong);
+    }
+
+    .emoji-big {
+      font-size: 1.3rem;
+    }
+
+    .key-term {
+      background: rgba(15, 23, 42, 0.7);
+      border-left: 3px solid var(--accent);
+      padding: 8px 10px;
+      margin: 6px 0;
+      border-radius: 6px;
+    }
+
+    .key-term strong {
+      color: var(--accent-strong);
+    }
+
+    code {
+      font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 0.85rem;
+      background: rgba(15, 23, 42, 0.9);
+      padding: 1px 4px;
+      border-radius: 4px;
+      border: 1px solid rgba(148, 163, 184, 0.4);
+    }
+
+    pre {
+      background: #020617;
+      padding: 10px;
+      overflow-x: auto;
+      border-radius: 10px;
+      border: 1px solid rgba(148, 163, 184, 0.5);
+      font-size: 0.8rem;
+    }
+
+    pre .label {
+      display: inline-block;
+      margin-bottom: 4px;
+      color: var(--accent-strong);
+      font-weight: 600;
+    }
+
+    .diagram-box {
+      border-radius: 10px;
+      border: 1px dashed rgba(148, 163, 184, 0.7);
+      background: rgba(15, 23, 42, 0.8);
+      padding: 8px 10px;
+      margin-top: 6px;
+      font-size: 0.8rem;
+    }
+
+    .diagram-title {
+      font-weight: 600;
+      color: var(--accent-strong);
+      margin-bottom: 4px;
+    }
+
+    .highlight {
+      background: rgba(16, 185, 129, 0.2);
+      border-radius: 6px;
+      padding: 3px 6px;
+    }
+
+    .warning {
+      background: rgba(248, 113, 113, 0.16);
+      border-radius: 6px;
+      border: 1px solid rgba(248, 113, 113, 0.5);
+      padding: 6px 8px;
+      font-size: 0.86rem;
+    }
+
+    .tip {
+      background: rgba(52, 211, 153, 0.14);
+      border-radius: 6px;
+      border: 1px solid rgba(52, 211, 153, 0.5);
+      padding: 6px 8px;
+      font-size: 0.86rem;
+    }
+
+    .story-callout {
+      border-left: 3px solid var(--accent-strong);
+      padding-left: 10px;
+      margin: 8px 0;
+      font-size: 0.9rem;
+    }
+
+    .story-speaker {
+      font-weight: 600;
+      color: var(--accent-strong);
+    }
+
+    .flex-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 6px 0;
+      font-size: 0.85rem;
+    }
+
+    .chip {
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.6);
+    }
+
+    .quiz-question {
+      margin-bottom: 14px;
+      padding: 10px;
+      border-radius: 10px;
+      background: rgba(15, 23, 42, 0.85);
+      border: 1px solid rgba(148, 163, 184, 0.6);
+    }
+
+    .quiz-question strong {
+      color: var(--accent-strong);
+    }
+
+    .answer {
+      margin-top: 6px;
+      font-size: 0.9rem;
+      display: none;
+      padding: 6px 8px;
+      border-radius: 8px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(56, 189, 248, 0.5);
+    }
+
+    .quiz-btn {
+      margin-top: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--accent);
+      background: rgba(15, 23, 42, 0.9);
+      color: var(--accent-strong);
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: background 0.15s ease, transform 0.1s ease;
+    }
+
+    .quiz-btn:hover {
+      background: var(--accent-soft);
+      transform: translateY(-1px);
+    }
+
+    .section-tag {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
+      color: var(--text-soft);
+    }
+
+    .recap-list li {
+      margin-bottom: 4px;
+    }
+
+    ul {
+      padding-left: 18px;
+    }
+
+    .small {
+      font-size: 0.8rem;
+      color: var(--text-soft);
+    }
+
+    .center {
+      text-align: center;
+    }
+
+    .cta {
+      margin-top: 12px;
+      padding: 8px 10px;
+      border-radius: 10px;
+      background: rgba(37, 99, 235, 0.18);
+      border: 1px dashed rgba(59, 130, 246, 0.7);
+      font-size: 0.9rem;
+    }
+
+    .pulse {
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.7); }
+      70% { box-shadow: 0 0 0 8px rgba(56, 189, 248, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0); }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>3.1.1–3.1.3 🔐 Cryptography Starter Pack</h1>
+    <p>Plaintext → Ciphertext, super‑fast symmetric encryption, and why key length is a BIG deal</p>
+    <div class="badge-row">
+      <div class="badge"><span>Domain:</span> 1.4 – Cryptographic Solutions</div>
+      <div class="badge"><span>Level:</span> Core Fundamentals</div>
+      <div class="badge"><span>Exam:</span> CompTIA Security+ SY0‑701</div>
+    </div>
+  </header>
+
+  <main>
+    <section class="grid">
+      <article class="card">
+        <div class="section-tag">Big Picture</div>
+        <h2><span class="emoji-big">🧠</span> Overview – What Is Cryptography?</h2>
+        <p>
+          <strong>Cryptography</strong> = making information secret and safe by turning it into something unreadable 
+          unless you have the right key. Think of it as putting data in a magic lockbox that only opens for the right person.
+        </p>
+        <div class="key-term">
+          <strong>Plaintext 💬</strong> – the normal, readable data (like “Hello World”).<br />
+          <strong>Ciphertext 🔒</strong> – the scrambled, unreadable version after encryption (like “rWoeldlolH”).<br />
+          <strong>Algorithm ⚙️</strong> – the step‑by‑step recipe the computer follows to scramble or unscramble data.<br />
+          <strong>Key 🔑</strong> – the secret value that tells the algorithm exactly how to scramble/unscramble.
+        </div>
+        <p>
+          Cryptography is different from “hiding” data. You can know the file exists, see where it is, even copy it – 
+          but without the key, it still looks like nonsense.
+        </p>
+      </article>
+
+      <aside class="card">
+        <div class="section-tag">Cast of Characters</div>
+        <h2><span class="emoji-big">🎭</span> Alice, Bob & Mallory</h2>
+        <p>We use pretend people to explain crypto and attacks:</p>
+        <ul>
+          <li><strong>Alice 👩‍💻</strong> – sends the real message.</li>
+          <li><strong>Bob 👨‍💻</strong> – is supposed to receive it.</li>
+          <li><strong>Mallory 🕵️‍♀️</strong> – the malicious attacker trying to read or change it.</li>
+        </ul>
+        <div class="diagram-box">
+          <div class="diagram-title">Message Journey</div>
+<pre>
+Alice (sender)        Mallory (attacker)          Bob (receiver)
+   |  Plaintext   --> [Encrypt 🔑] --> Ciphertext --> |
+   | -----------------------------------------------> |
+</pre>
+          <div class="small">Goal: Even if Mallory sees the ciphertext, she cannot understand or change it safely.</div>
+        </div>
+      </aside>
+    </section>
+
+    <section class="card">
+      <div class="section-tag">3.1.1 Cryptographic Concepts</div>
+      <h2><span class="emoji-big">📚</span> Three Main Crypto Building Blocks</h2>
+      <p>We use three main types of cryptographic tools, each with a different job:</p>
+      <div class="flex-row">
+        <div class="chip">🔐 Symmetric Encryption – one shared secret key</div>
+        <div class="chip">🗝️ Asymmetric Encryption – public/private key pairs</div>
+        <div class="chip">🧬 Hash Functions – one‑way “fingerprints”</div>
+      </div>
+      <div class="key-term">
+        <strong>Confidentiality 🤫</strong> – keeping data secret from unauthorized people.<br />
+        <strong>Integrity ✅</strong> – making sure data hasn’t been changed or corrupted.<br />
+        <strong>Non‑repudiation ✍️</strong> – proving who really sent/approved something so they cannot deny it later.
+      </div>
+      <p>
+        Different crypto tools help achieve these goals in different ways. Symmetric is usually for 
+        <span class="highlight">confidentiality</span>, hashes for <span class="highlight">integrity</span>, and 
+        public‑key systems help with <span class="highlight">authentication and non‑repudiation</span>.
+      </p>
+    </section>
+
+    <section class="card">
+      <div class="section-tag">Analogy Story</div>
+      <h2><span class="emoji-big">🏰</span> Story – The Castle of Secrets</h2>
+      <p>
+        Imagine a castle 🏰 where Alice is the royal librarian, Bob is the royal general, and Mallory is a sneaky spy.
+      </p>
+      <div class="story-callout">
+        <div class="story-speaker">Step 1 – Plaintext 📜</div>
+        Alice writes an important battle plan in normal language that anyone could read if they saw it.
+      </div>
+      <div class="story-callout">
+        <div class="story-speaker">Step 2 – Algorithm & Key ⚙️🔑</div>
+        The kingdom uses a special machine that scrambles letters (the algorithm) and a secret dial position
+        (the key). Alice sets the dial to the secret number and runs the page through.
+      </div>
+      <div class="story-callout">
+        <div class="story-speaker">Step 3 – Ciphertext 🌀</div>
+        The page comes out as weird symbols no one understands. That’s the ciphertext. She sends this 
+        scrambled page by messenger across the land.
+      </div>
+      <div class="story-callout">
+        <div class="story-speaker">Step 4 – Mallory Intercepts 👀</div>
+        Mallory stops the messenger and copies the scrambled page. She knows the machine type 
+        (the algorithm), but not the secret dial position (the key), so it’s still nonsense.
+      </div>
+      <div class="story-callout">
+        <div class="story-speaker">Step 5 – Bob Decrypts 🔓</div>
+        Bob has an identical machine and knows the same secret dial position. He turns it to the right
+        number and runs the ciphertext page through. It comes out as the original battle plan.
+      </div>
+      <p>
+        Even though Mallory saw the message traveling, she couldn’t read it because she didn’t know the key.
+        That is exactly what symmetric encryption tries to do in a computer network.
+      </p>
+    </section>
+
+    <section class="card">
+      <div class="section-tag">3.1.2 Symmetric Encryption</div>
+      <h2><span class="emoji-big">⚡</span> Symmetric Encryption – One Key to Lock and Unlock</h2>
+      <p>
+        In <strong>symmetric encryption</strong>, the <em>same key</em> is used to encrypt (lock) and decrypt (unlock) the data.
+        It’s very fast and great for protecting large amounts of data. 🧊
+      </p>
+      <div class="diagram-box">
+        <div class="diagram-title">Symmetric Flow (High Level)</div>
+<pre>
+        Shared Secret Key 🔑
+Alice ---------------------------- Bob
+   |                                |
+   | 1. Encrypt with key            |
+   |    Plaintext --> Ciphertext    |
+   |                                |
+   | 2. Send Ciphertext  ---------->|
+   |                                |
+   | 3. Decrypt with same key       |
+   |    Ciphertext --> Plaintext    |
+</pre>
+      </div>
+      <p>
+        The <strong>strength</strong> of symmetric encryption is <span class="highlight">speed</span>. Modern symmetric ciphers like AES are
+        optimized to encrypt huge amounts of data quickly, which is why they’re used inside protocols like TLS (HTTPS). 
+      </p>
+      <div class="warning">
+        <strong>Big Problem – Key Exchange 😬</strong><br />
+        Alice and Bob both need the same secret key, but how do they share it safely in the first place 
+        without Mallory stealing it? This “key exchange problem” is why we also need asymmetric encryption later.
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="section-tag">Classic Ciphers</div>
+      <h2><span class="emoji-big">🔤</span> Substitution & Transposition – Baby Crypto</h2>
+      <p>
+        Before modern math‑heavy ciphers, people used simple paper‑and‑pencil methods:
+      </p>
+      <ul>
+        <li><strong>Substitution</strong> – swap each letter/part with another one.</li>
+        <li><strong>Transposition</strong> – keep letters the same but <em>reorder</em> them.</li>
+      </ul>
+      <div class="diagram-box">
+        <div class="diagram-title">Substitution Example (ROT13‑style)</div>
+<pre>
+Plaintext : HELLO
+Key       : shift each letter 13 positions
+Cipher    : URYYB   (H->U, E->R, L->Y, L->Y, O->B)
+
+Plaintext : HELLO WORLD
+Cipher    : URYYB JBEYQ
+</pre>
+      </div>
+      <div class="diagram-box">
+        <div class="diagram-title">Transposition Example</div>
+<pre>
+Plaintext (HELLOWORLD) written in rows:
+
+H L O O L
+E L W R D
+
+Read down the columns to get:
+H E L L O O L W R D = "HELLOOLWRD" (one possible pattern)
+</pre>
+      </div>
+      <p>
+        Modern ciphers still use the ideas of “substitute” and “rearrange,” but in extremely complex
+        ways with many rounds, making them resistant to cryptanalysis.
+      </p>
+    </section>
+
+    <section class="card">
+      <div class="section-tag">3.1.3 Key Length</div>
+      <h2><span class="emoji-big">📏</span> Key Length & Keyspace – How Strong Is the Lock?</h2>
+      <p>
+        The <strong>key length</strong> is how many bits are in the key (for example, 128‑bit or 256‑bit). 
+        The more bits, the more possible keys. That “universe” of all possible keys is called the <strong>keyspace</strong>.
+      </p>
+      <div class="diagram-box">
+        <div class="diagram-title">Keyspace Growth</div>
+<pre>
+1 bit   ->  2 possible keys       (2^1)
+2 bits  ->  4 possible keys       (2^2)
+3 bits  ->  8 possible keys       (2^3)
+...
+128 bits -> 2^128 possibilities 😱
+256 bits -> 2^256 possibilities 🤯
+</pre>
+      </div>
+      <p>
+        A <strong>brute force attack</strong> means “try every possible key until something readable appears.”
+        As key length grows, brute force becomes practically impossible with current tech.
+      </p>
+      <div class="tip">
+        Modern symmetric ciphers like AES commonly use <strong>128‑bit</strong> or <strong>256‑bit</strong> keys. Both are
+        considered extremely strong for real‑world use; 256‑bit just has a dramatically larger keyspace.
+      </div>
+      <div class="warning">
+        Larger keys make encryption stronger but require more CPU and memory. There’s a trade‑off between 
+        <strong>security</strong> and <strong>performance</strong>, especially for devices with limited power.
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="section-tag">Visual Map</div>
+      <h2><span class="emoji-big">🗺️</span> Text Diagram – Crypto Zoo</h2>
+      <div class="diagram-box">
+        <div class="diagram-title">Where Each Crypto Piece Fits</div>
+<pre>
+       ┌───────────────────────────────────────────────┐
+       │                CRYPTOGRAPHY 🔐               │
+       └───────────────────────────────────────────────┘
+            |                     |                  |
+            |                     |                  |
+      ┌─────────────┐      ┌─────────────┐     ┌──────────────┐
+      │ Symmetric   │      │ Asymmetric  │     │ Hashing      │
+      │ Encryption  │      │ Encryption  │     │ Functions    │
+      └─────────────┘      └─────────────┘     └──────────────┘
+           |                     |                   |
+     One secret key         Key pair (pub/pri)  One-way fingerprint
+   (fast, bulk data)     (key exchange, sigs) (integrity checks)
+</pre>
+      </div>
+      <p class="small">
+        This lesson focuses on: basic concepts, symmetric side, and how key length affects brute force.
+      </p>
+    </section>
+
+    <section class="card">
+      <div class="section-tag">Tips & Exam Relevance</div>
+      <h2><span class="emoji-big">🎯</span> Tips, Tricks & Exam Relevance</h2>
+      <ul>
+        <li>When you see “<strong>same key for encrypt and decrypt</strong>” on the exam, think <strong>symmetric</strong>.</li>
+        <li>When you see “<strong>two keys (public/private)</strong>”, that’s <strong>asymmetric</strong> – used for key exchange and signatures.</li>
+        <li>When you see “<strong>one‑way, fixed length output, integrity</strong>”, that’s a <strong>hash function</strong>.</li>
+        <li>Questions about “<strong>brute force resistance</strong>” or “<strong>keyspace</strong>” are testing your knowledge of <strong>key length</strong>.</li>
+      </ul>
+      <div class="cta pulse">
+        Mini‑task: Close your eyes and say out loud:<br />
+        “Symmetric = same secret key. Bigger key length = bigger keyspace = harder brute force.”
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="section-tag">Quiz Time</div>
+      <h2><span class="emoji-big">📝</span> Quick Quiz (Click to Reveal Answers)</h2>
+
+      <div class="quiz-question">
+        <strong>Q1.</strong> Which term means <em>unencrypted, readable data</em>?
+        <ul>
+          <li>A. Ciphertext</li>
+          <li>B. Plaintext</li>
+          <li>C. Hash</li>
+          <li>D. Algorithm</li>
+        </ul>
+        <button class="quiz-btn" onclick="toggleAnswer('a1')">Show Answer</button>
+        <div id="a1" class="answer">
+          <strong>Answer: B – Plaintext.</strong><br />
+          Plaintext is the original readable message before encryption. Ciphertext is the scrambled version.
+        </div>
+      </div>
+
+      <div class="quiz-question">
+        <strong>Q2.</strong> In symmetric encryption, how many keys are used for encrypting and decrypting?
+        <ul>
+          <li>A. Zero</li>
+          <li>B. One shared secret key</li>
+          <li>C. Two keys (public/private)</li>
+          <li>D. One key per user, never shared</li>
+        </ul>
+        <button class="quiz-btn" onclick="toggleAnswer('a2')">Show Answer</button>
+        <div id="a2" class="answer">
+          <strong>Answer: B – One shared secret key.</strong><br />
+          The same key locks and unlocks the data, which is why key exchange is such a big issue.
+        </div>
+      </div>
+
+      <div class="quiz-question">
+        <strong>Q3.</strong> What is <em>keyspace</em>?
+        <ul>
+          <li>A. The amount of disk space the key uses</li>
+          <li>B. The range of all possible key values</li>
+          <li>C. The number of users that can have a key</li>
+          <li>D. The length of the ciphertext</li>
+        </ul>
+        <button class="quiz-btn" onclick="toggleAnswer('a3')">Show Answer</button>
+        <div id="a3" class="answer">
+          <strong>Answer: B – The range of all possible key values.</strong><br />
+          Bigger keyspace means more possibilities an attacker must try in a brute force attack.
+        </div>
+      </div>
+
+      <div class="quiz-question">
+        <strong>Q4.</strong> Why are longer keys (like 256‑bit) usually harder to brute force than shorter keys (like 128‑bit)?
+        <ul>
+          <li>A. They change the algorithm</li>
+          <li>B. They reduce the amount of ciphertext</li>
+          <li>C. They increase the number of possible keys exponentially</li>
+          <li>D. They always make encryption faster</li>
+        </ul>
+        <button class="quiz-btn" onclick="toggleAnswer('a4')">Show Answer</button>
+        <div id="a4" class="answer">
+          <strong>Answer: C – More possible keys, exponentially.</strong><br />
+          Each extra bit doubles the keyspace, making brute force grow extremely fast.
+        </div>
+      </div>
+
+      <div class="quiz-question">
+        <strong>Q5.</strong> Which property is MOST directly helped by cryptographic hash functions?
+        <ul>
+          <li>A. Confidentiality</li>
+          <li>B. Integrity</li>
+          <li>C. Availability</li>
+          <li>D. Physical security</li>
+        </ul>
+        <button class="quiz-btn" onclick="toggleAnswer('a5')">Show Answer</button>
+        <div id="a5" class="answer">
+          <strong>Answer: B – Integrity.</strong><br />
+          Hashes act like fingerprints: if data changes, the hash changes, so you can detect tampering.
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="section-tag">Recap</div>
+      <h2><span class="emoji-big">🔁</span> Recap – Say It in Your Own Words</h2>
+      <ul class="recap-list">
+        <li>Cryptography = using math + keys to protect data.</li>
+        <li>Plaintext is readable; ciphertext is scrambled and unreadable.</li>
+        <li>Symmetric encryption uses one shared secret key for locking and unlocking.</li>
+        <li>Key length controls the size of the keyspace and brute force difficulty.</li>
+        <li>Hashes help with integrity; longer keys help with resistance to guessing.</li>
+      </ul>
+      <div class="cta">
+        Challenge: Without looking, explain to an imaginary friend:<br />
+        “Why do we care about key length in symmetric encryption?”
+      </div>
+    </section>
+
+    <section class="card">
+      <div class="section-tag">Study Tip</div>
+      <h2><span class="emoji-big">⏰</span> How to Review This for the Exam</h2>
+      <ul>
+        <li>Day 1: Read the story & overview slowly. Answer each quiz question out loud before clicking.</li>
+        <li>Day 3: Come back and redraw the Crypto Zoo diagram from memory on paper.</li>
+        <li>Day 7: Explain symmetric vs asymmetric vs hashing to a friend (or to yourself in the mirror!).</li>
+      </ul>
+      <p class="small">
+        This uses spaced repetition + active recall, which are powerful for long‑term memory.
+      </p>
+    </section>
+  </main>
+
+  <script>
+    function toggleAnswer(id) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.style.display = (el.style.display === "block") ? "none" : "block";
+    }
+  </script>
+</body>
+</html>
