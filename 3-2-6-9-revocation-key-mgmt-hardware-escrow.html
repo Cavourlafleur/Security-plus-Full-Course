@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>3.2.6–3.2.9 – Revocation, Key Management, Crypto Hardware & Escrow – SY0-701</title>
+  <style>
+    :root {
+      --bg-main: #020617;
+      --accent: #38bdf8;
+      --accent-strong: #f97316;
+      --accent-soft: rgba(56, 189, 248, 0.25);
+      --accent-green: #4ade80;
+      --accent-red: #f97373;
+      --text-main: #e5e7eb;
+      --text-soft: #9ca3af;
+      --border-soft: rgba(148, 163, 184, 0.5);
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top left, #1d3557 0, #020617 45%, #000 100%);
+      color: var(--text-main);
+      line-height: 1.7;
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      padding: 18px 16px 10px;
+      background: linear-gradient(
+        to bottom,
+        rgba(15, 23, 42, 0.98),
+        rgba(15, 23, 42, 0.9),
+        transparent
+      );
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid rgba(148, 163, 184, 0.25);
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: clamp(1.7rem, 3vw, 2.3rem);
+      color: var(--accent-strong);
+      text-shadow: 0 0 14px rgba(249, 115, 22, 0.6);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+    }
+
+    header p {
+      margin: 4px 0 0;
+      text-align: center;
+      color: var(--text-soft);
+      font-size: 0.96rem;
+    }
+
+    .badge-row {
+      margin-top: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px;
+      font-size: 0.78rem;
+    }
+
+    .badge {
+      border-radius: 999px;
+      padding: 4px 10px;
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      color: var(--text-soft);
+    }
+    .badge span {
+      color: var(--accent-strong);
+      font-weight: 600;
+    }
+
+    main {
+      max-width: 1160px;
+      margin: 10px auto 40px;
+      padding: 0 12px 32px;
+    }
+
+    .card {
+      background: radial-gradient(circle at top right, rgba(56, 189, 248, 0.1), transparent 55%),
+                  linear-gradient(145deg, #020617, #020617);
+      border-radius: 14px;
+      padding: 14px 16px;
+      margin: 9px 0;
+      border: 1px solid rgba(148, 163, 184, 0.55);
+      box-shadow: 0 14px 40px rgba(15, 23, 42, 0.9);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: -40%;
+      background: radial-gradient(circle at top left,
+        rgba(56, 189, 248, 0.15),
+        transparent 65%);
+      opacity: 0;
+      transition: opacity 0.2s ease-out;
+      pointer-events: none;
+    }
+
+    .card:hover::before { opacity: 1; }
+
+    .section-tag {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
+      color: var(--text-soft);
+      margin-bottom: 3px;
+    }
+
+    h2 {
+      margin: 0 0 6px;
+      color: var(--accent);
+      font-size: 1.12rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    p { margin: 4px 0 8px; font-size: 0.95rem; }
+
+    .key-term {
+      background: rgba(15, 23, 42, 0.9);
+      border-left: 3px solid var(--accent);
+      padding: 7px 9px;
+      margin: 6px 0;
+      border-radius: 6px;
+      font-size: 0.9rem;
+    }
+    .key-term strong { color: var(--accent-strong); }
+
+    .note, .warning, .tip {
+      border-radius: 7px;
+      padding: 6px 8px;
+      font-size: 0.86rem;
+    }
+    .note {
+      background: rgba(37, 99, 235, 0.15);
+      border: 1px dashed rgba(59, 130, 246, 0.7);
+    }
+    .warning {
+      background: rgba(248, 113, 113, 0.15);
+      border: 1px solid rgba(248, 113, 113, 0.7);
+    }
+    .tip {
+      background: rgba(52, 211, 153, 0.12);
+      border: 1px solid rgba(52, 211, 153, 0.7);
+    }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 0.86rem;
+      background: rgba(15, 23, 42, 0.9);
+      padding: 1px 4px;
+      border-radius: 4px;
+      border: 1px solid rgba(148, 163, 184, 0.45);
+    }
+
+    pre {
+      background: #020617;
+      padding: 9px;
+      overflow-x: auto;
+      border-radius: 10px;
+      border: 1px solid var(--border-soft);
+      font-size: 0.8rem;
+      margin: 6px 0;
+    }
+
+    .diagram-title {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--accent-strong);
+      margin-bottom: 2px;
+    }
+    .diagram-box {
+      background: rgba(15, 23, 42, 0.9);
+      border-radius: 10px;
+      padding: 7px 9px;
+      margin-top: 4px;
+      border: 1px dashed var(--border-soft);
+      font-size: 0.82rem;
+    }
+
+    .gloss {
+      border-bottom: 1px dotted rgba(148, 163, 184, 0.9);
+      cursor: help;
+      position: relative;
+    }
+    .gloss::after {
+      content: attr(data-tip);
+      position: absolute;
+      left: 0;
+      top: 130%;
+      min-width: 160px;
+      max-width: 260px;
+      background: #020617;
+      padding: 6px 7px;
+      border-radius: 8px;
+      border: 1px solid rgba(148, 163, 184, 0.7);
+      color: var(--text-main);
+      font-size: 0.78rem;
+      line-height: 1.4;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(3px);
+      transition: opacity 0.15s ease, transform 0.15s ease;
+      z-index: 20;
+    }
+    .gloss:hover::after {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .story-callout {
+      border-left: 3px solid var(--accent-strong);
+      padding-left: 9px;
+      margin: 6px 0;
+      font-size: 0.9rem;
+    }
+    .story-speaker {
+      font-weight: 600;
+      color: var(--accent-strong);
+    }
+
+    .highlight {
+      background: rgba(56, 189, 248, 0.18);
+      border-radius: 5px;
+      padding: 1px 3px;
+    }
+
+    .small { font-size: 0.8rem; color: var(--text-soft); }
+
+    /* Expander */
+    .expander {
+      margin: 6px 0;
+      border-radius: 10px;
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid rgba(148, 163, 184, 0.45);
+      overflow: hidden;
+    }
+    .expander-header {
+      padding: 6px 9px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+    .expander-header:hover { background: rgba(15, 23, 42, 0.9); }
+    .expander-body {
+      padding: 6px 9px 8px;
+      border-top: 1px solid rgba(148, 163, 184, 0.35);
+      display: none;
+      font-size: 0.88rem;
+    }
+    .expander-icon {
+      font-size: 0.9rem;
+      transition: transform 0.15s ease;
+    }
+    .expander.open .expander-body { display: block; }
+    .expander.open .expander-icon { transform: rotate(90deg); }
+
+    /* Quiz */
+    .quiz-question {
+      margin-bottom: 14px;
+      padding: 9px;
+      border-radius: 10px;
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid var(--border-soft);
+      font-size: 0.9rem;
+    }
+    .quiz-question strong { color: var(--accent-strong); }
+
+    .answer {
+      margin-top: 5px;
+      display: none;
+      padding: 6px 8px;
+      border-radius: 8px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(56, 189, 248, 0.7);
+      font-size: 0.86rem;
+    }
+
+    .quiz-btn {
+      margin-top: 4px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--accent);
+      background: rgba(15, 23, 42, 0.9);
+      color: var(--accent-strong);
+      font-size: 0.78rem;
+      cursor: pointer;
+    }
+    .quiz-btn:hover { background: var(--accent-soft); }
+
+    .score { font-size: 0.86rem; margin-bottom: 6px; color: var(--accent-green); }
+
+    .cta {
+      margin-top: 8px;
+      padding: 7px 9px;
+      border-radius: 10px;
+      background: rgba(37, 99, 235, 0.2);
+      border: 1px dashed rgba(59, 130, 246, 0.8);
+      font-size: 0.9rem;
+    }
+
+    .pulse {
+      animation: pulse 1.7s infinite;
+    }
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.7); }
+      70% { box-shadow: 0 0 0 11px rgba(56, 189, 248, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0); }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>3.2.6–3.2.9 🔑 Revocation, Key Management, Crypto Hardware & Escrow</h1>
+    <p>What happens when keys go bad, how we store them safely, and how hardware + escrow save the day.</p>
+    <div class="badge-row">
+      <div class="badge"><span>Domain:</span> 3.2 – PKI & Cryptographic Keys</div>
+      <div class="badge"><span>Exam:</span> Security+ SY0‑701</div>
+      <div class="badge"><span>Topics:</span> CRL & OCSP • Key Lifecycle • TPM/HSM • Escrow</div>
+    </div>
+  </header>
+
+  <main>
+    <!-- Overview -->
+    <section class="card">
+      <div class="section-tag">Big Picture</div>
+      <h2>🧠 Why This Stuff Matters</h2>
+      <p>
+        It’s not enough to create strong keys—you must also know how to <span class="highlight">revoke</span> bad ones, 
+        <span class="highlight">manage</span> them over their lifetime, <span class="highlight">protect</span> them with hardware, 
+        and sometimes <span class="highlight">recover</span> them via escrow.
+      </p>
+      <div class="key-term">
+        <strong>Revocation 🧾</strong> – publishing that a certificate/key is no longer trusted.  
+        <br />
+        <strong>Key Management 🔑</strong> – how keys are generated, stored, used, rotated, expired.  
+        <br />
+        <strong>Cryptoprocessor 💾</strong> – special hardware (TPM/HSM) that generates & protects keys.  
+        <br />
+        <strong>Key Escrow 🧳</strong> – securely holding backup copies of keys so they can be recovered later.
+      </div>
+    </section>
+
+    <!-- 3.2.6 Revocation -->
+    <section class="card">
+      <div class="section-tag">3.2.6 Certificate Revocation</div>
+      <h2>🧾 Revocation – “This Cert Is No Longer Safe”</h2>
+      <p>
+        Sometimes a certificate that used to be good must be marked as <strong>no longer trusted</strong>:
+      </p>
+      <ul>
+        <li>Private key is stolen or suspected compromised.</li>
+        <li>Employee leaves the company.</li>
+        <li>Business shuts down or domain changes.</li>
+        <li>Certificate was issued by mistake or misused.</li>
+      </ul>
+      <div class="key-term">
+        <strong>Revoked</strong> – permanently invalid, cannot be “un‑revoked.”  
+        <br />
+        <strong>Suspended (Certificate Hold)</strong> – temporarily not trusted, could be re‑enabled.
+      </div>
+      <p>
+        To tell the world which certs are revoked, CAs publish a <strong>Certificate Revocation List (CRL)</strong> or provide 
+        online checks via the <strong>Online Certificate Status Protocol (OCSP)</strong>.[web:197][web:199][web:202][web:204]
+      </p>
+
+      <div class="diagram-box">
+        <div class="diagram-title">CRL vs OCSP</div>
+<pre>
+CRL (Certificate Revocation List) 🧾
+  - CA publishes a signed list of serial numbers that are revoked.[web:197][web:202][web:204]
+  - Clients download the list from URLs in the cert ("CRL Distribution Points").
+  - Lists can get large and may be slightly out-of-date.
+
+OCSP (Online Certificate Status Protocol) 🌐
+  - Client sends a query: "Is cert with serial X good?"[web:197][web:199][web:202][web:204]
+  - OCSP responder replies "good", "revoked", or "unknown".
+  - More real-time, usually lighter than full CRLs.[web:197][web:199][web:202]
+</pre>
+      </div>
+
+      <div class="expander" onclick="toggleExpander(event)">
+        <div class="expander-header">
+          <span>⚠️ Revocation Window Problems</span>
+          <span class="expander-icon">▶</span>
+        </div>
+        <div class="expander-body">
+          <p>
+            With CRLs, there can be a delay between revocation and the next CRL publish time; during that window, some 
+            clients may still accept a revoked cert.[web:197][web:202][web:204]
+          </p>
+          <p>
+            OCSP helps reduce this delay, but if clients don’t check OCSP (or cannot reach the responder), they may fall 
+            back to “soft‑fail,” still trusting the cert.[web:197][web:199][web:202]
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3.2.7 Key Management -->
+    <section class="card">
+      <div class="section-tag">3.2.7 Key Management</div>
+      <h2>🔑 Key Lifecycle – From Birth to Expiry</h2>
+      <p>
+        <strong>Key management</strong> is about every stage of a key’s life:
+      </p>
+      <ul>
+        <li><strong>Generation</strong> – create strong random keys using approved algorithms.</li>
+        <li><strong>Storage</strong> – keep private/secret keys protected from theft and loss.</li>
+        <li><strong>Use</strong> – limit which apps and people can actually use the key.</li>
+        <li><strong>Rotation / Renewal</strong> – replace keys/certs on schedule or after events.</li>
+        <li><strong>Revocation</strong> – mark keys/certs as no longer trusted if compromised.</li>
+        <li><strong>Destruction</strong> – securely wipe old keys so they can’t be recovered.</li>
+      </ul>
+
+      <div class="diagram-box">
+        <div class="diagram-title">Key Lifecycle Wheel</div>
+<pre>
+   [Generate] --> [Store] --> [Use] --> [Rotate/Renew]
+        ^                                 |
+        |                                 v
+    [Destroy] <-- [Revoke/Expire] <-- [Audit]
+</pre>
+      </div>
+
+      <div class="expander" onclick="toggleExpander(event)">
+        <div class="expander-header">
+          <span>🏢 Centralized vs Decentralized Key Management</span>
+          <span class="expander-icon">▶</span>
+        </div>
+        <div class="expander-body">
+          <p>
+            <strong>Decentralized</strong> – Each device or user generates and stores its own keys locally.  
+            Easy to deploy, but harder to monitor and detect compromise.
+          </p>
+          <p>
+            <strong>Centralized</strong> – A key management system (KMS) or hardware security module manages keys 
+            for many clients; devices use standard protocols (such as KMIP) to request crypto operations from it.[web:192][web:198]
+          </p>
+          <p>
+            For large organizations, centralized key management simplifies policy enforcement and auditing.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3.2.8 Cryptoprocessors and Secure Enclaves -->
+    <section class="card">
+      <div class="section-tag">3.2.8 Cryptoprocessors & Secure Enclaves</div>
+      <h2>💾 Crypto Hardware – TPM, HSM & Secure Enclaves</h2>
+      <p>
+        Storing keys as normal files on a regular OS can be risky—malware, theft, or memory dumps could expose them.
+        <strong>Cryptoprocessors</strong> are specialized hardware that generate, store, and use keys more securely.
+      </p>
+
+      <div class="key-term">
+        <strong>Entropy 🎲</strong> – randomness. More entropy → stronger, less predictable keys.  
+        <br />
+        <strong>TRNG</strong> – True Random Number Generator, uses physical noise sources for randomness.  
+        <br />
+        <strong>PRNG</strong> – Pseudo RNG, deterministic algorithm that simulates randomness when seeded well.
+      </div>
+
+      <div class="diagram-box">
+        <div class="diagram-title">Why Cryptoprocessors?</div>
+<pre>
+Regular system:
+  Key generated & stored in files on disk.
+  App loads key into RAM to use.
+  Malware or attackers may grab it.
+
+With Cryptoprocessor:
+  Key generated and stored inside hardware.
+  App asks hardware to "decrypt" or "sign" but never sees the raw key.
+  Smaller attack surface & easier auditing.
+</pre>
+      </div>
+
+      <div class="expander" onclick="toggleExpander(event)">
+        <div class="expander-header">
+          <span>🧱 Trusted Platform Module (TPM)</span>
+          <span class="expander-icon">▶</span>
+        </div>
+        <div class="expander-body">
+          <p>
+            A <strong>TPM</strong> is a cryptoprocessor built into a device (chip, integrated, or firmware) that:
+          </p>
+          <ul>
+            <li>Generates and stores device‑specific keys.</li>
+            <li>Helps with disk encryption (for example, BitLocker) and platform integrity checks.</li>
+            <li>Can measure firmware/boot state and sign those measurements for remote attestation.</li>
+          </ul>
+          <p>
+            TPMs can be:
+          </p>
+          <ul>
+            <li><strong>Discrete</strong> – separate chip, more tamper‑resistant.</li>
+            <li><strong>Integrated</strong> – built into CPU/chipset, larger attack surface.</li>
+            <li><strong>Firmware‑based</strong> – implemented in platform firmware relying on CPU secure features.</li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="expander" onclick="toggleExpander(event)">
+        <div class="expander-header">
+          <span>🏢 Hardware Security Module (HSM)</span>
+          <span class="expander-icon">▶</span>
+        </div>
+        <div class="expander-body">
+          <p>
+            An <strong>HSM</strong> is a more powerful cryptoprocessor often used as:
+          </p>
+          <ul>
+            <li>A rack appliance for data centers.</li>
+            <li>A PCIe card in a server.</li>
+            <li>A USB or token device.</li>
+            <li>A virtual/cloud HSM service.</li>
+          </ul>
+          <p>
+            Organizations use HSMs to centrally manage sensitive keys for TLS, code signing, databases, and PKI 
+            root/intermediate CAs. Many are certified under standards such as FIPS 140‑2.[web:192][web:198]
+          </p>
+        </div>
+      </div>
+
+      <div class="expander" onclick="toggleExpander(event)">
+        <div class="expander-header">
+          <span>🧠 Secure Enclave / Trusted Execution Environment (TEE)</span>
+          <span class="expander-icon">▶</span>
+        </div>
+        <div class="expander-body">
+          <p>
+            Even with cryptoprocessors, decrypted data usually passes through system memory (RAM). A 
+            <strong>secure enclave</strong> or <strong>TEE</strong> (for example, Intel SGX, ARM TrustZone) is a protected area 
+            of memory and execution where:
+          </p>
+          <ul>
+            <li>Only authorized, signed code can run.</li>
+            <li>Even high‑privilege malware (like root) shouldn’t read enclave memory directly.</li>
+          </ul>
+          <p>
+            This reduces the risk of RAM scraping attacks stealing secrets during processing.
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3.2.9 Key Escrow -->
+    <section class="card">
+      <div class="section-tag">3.2.9 Key Escrow</div>
+      <h2>🧳 Key Escrow & M‑of‑N Recovery</h2>
+      <p>
+        If a private key is completely lost and no backup exists, any data encrypted with it may be unrecoverable.
+        To avoid this, some environments use <strong>key escrow</strong>.
+      </p>
+      <div class="key-term">
+        <strong>Key Escrow 🧳</strong> – a trusted third party or internal system holds backup copies of encryption keys.  
+        <br />
+        <strong>M of N</strong> – at least M out of N authorized people are required to approve sensitive operations.
+      </div>
+      <p>
+        Keys can be split into shares and distributed to multiple escrow agents. To recover a key, a minimum number 
+        of shares (M) must be combined—no single person can do it alone.
+      </p>
+
+      <div class="diagram-box">
+        <div class="diagram-title">M‑of‑N in Action</div>
+<pre>
+Master key -> split into 5 shares:
+  Share A, B, C, D, E
+
+Policy: 3 of 5 must agree to recover key.
+
+Any 3 shares (e.g., A+B+E) can reconstruct the key.
+1 or 2 shares alone are useless.
+
+Protects against a single rogue admin using escrow to impersonate users.
+</pre>
+      </div>
+
+      <div class="tip">
+        On the exam, if you see “recover encrypted data when a user leaves” or “legal/regulatory access to keys,”
+        think about <strong>key escrow</strong> and possibly <strong>M‑of‑N controls</strong>.
+      </div>
+    </section>
+
+    <!-- Story -->
+    <section class="card">
+      <div class="section-tag">Analogy Story</div>
+      <h2>🏰 Story – The Royal Key Council</h2>
+      <p>
+        In a kingdom, magical lockboxes protect royal secrets. The Royal Key Council manages how these magic keys 
+        are created, stored, blocked, and recovered.
+      </p>
+      <div class="story-callout">
+        <div class="story-speaker">Revocation 🧾</div>
+        A knight loses their magic ring in enemy territory. The council posts the ring’s ID on a 
+        “Wall of Bad Rings” (CRL) so everyone knows: “If you see this ring used, do not trust it.” A faster messenger 
+        system (OCSP) can answer, “Is ring #123 still okay?” in real time.
+      </div>
+      <div class="story-callout">
+        <div class="story-speaker">Key Management 🔑</div>
+        New rings are forged with chaotic fire (entropy). Old rings are melted down when they expire. The council 
+        keeps records of who has which ring, and replaces them every few years or after suspicious events.
+      </div>
+      <div class="story-callout">
+        <div class="story-speaker">Cryptoprocessors 💾</div>
+        Instead of storing rings in open chests, they are stored in heavy, warded vaults (TPM/HSM). People can ask 
+        the vault to open containers or sign documents, but never see the raw rings inside.
+      </div>
+      <div class="story-callout">
+        <div class="story-speaker">Key Escrow 🧳</div>
+        The king’s master ring is too important to risk losing, so five council elders each hold part of a backup 
+        ring pattern. Any three elders can meet to re‑forge the ring if it’s lost, but no one elder can do it alone.
+      </div>
+    </section>
+
+    <!-- Exam Tips -->
+    <section class="card">
+      <div class="section-tag">Exam Relevance</div>
+      <h2>🎯 Exam Tip Patterns</h2>
+      <ul>
+        <li>“Check if a cert has been revoked without downloading a full list” → <strong>OCSP</strong>.</li>
+        <li>“List of revoked certs published by a CA” → <strong>CRL</strong>.</li>
+        <li>“Manage keys over their lifecycle, rotation, storage, revocation” → <strong>Key management</strong>.</li>
+        <li>“Hardware device that stores and manages keys for many servers” → <strong>HSM</strong>.</li>
+        <li>“Device‑specific crypto chip in a PC or laptop” → <strong>TPM</strong>.</li>
+        <li>“Need to be able to recover encrypted data if user loses key” → <strong>Key escrow</strong>.</li>
+      </ul>
+      <div class="cta pulse">
+        Try: close your eyes and say, “CRL = list, OCSP = online check, TPM/HSM = hardware, Escrow = backup with M‑of‑N.”
+      </div>
+    </section>
+
+    <!-- Quiz -->
+    <section class="card">
+      <div class="section-tag">Interactive Quiz</div>
+      <h2>📝 Quiz – Click to Reveal Answers</h2>
+      <div class="score" id="scoreLabel">Score: 0 correct</div>
+
+      <div class="quiz-question">
+        <strong>Q1.</strong> Which mechanism allows a client to check the status of a single certificate in real time?
+        <ul>
+          <li>A. CRL</li>
+          <li>B. OCSP</li>
+          <li>C. CSR</li>
+          <li>D. SAN</li>
+        </ul>
+        <button class="quiz-btn" onclick="revealAnswer('q1')">Show Answer</button>
+        <div class="answer" id="q1">
+          <strong>Answer: B – OCSP.</strong><br />
+          OCSP lets clients query an OCSP responder about one certificate’s status instead of downloading a full CRL.[web:197][web:199][web:202][web:204]
+        </div>
+      </div>
+
+      <div class="quiz-question">
+        <strong>Q2.</strong> A CA periodically publishes a signed file listing serial numbers of revoked certificates. What is this file?
+        <ul>
+          <li>A. CSR</li>
+          <li>B. CRL</li>
+          <li>C. OCSP response</li>
+          <li>D. PKCS#12</li>
+        </ul>
+        <button class="quiz-btn" onclick="revealAnswer('q2')">Show Answer</button>
+        <div class="answer" id="q2">
+          <strong>Answer: B – CRL.</strong><br />
+          A Certificate Revocation List is a signed list of revoked certificate identifiers published by a CA.[web:197][web:202][web:204]
+        </div>
+      </div>
+
+      <div class="quiz-question">
+        <strong>Q3.</strong> Which device is MOST appropriate for centrally storing and protecting private keys for a busy e‑commerce site?
+        <ul>
+          <li>A. TPM</li>
+          <li>B. HSM</li>
+          <li>C. USB flash drive</li>
+          <li>D. Local text file</li>
+        </ul>
+        <button class="quiz-btn" onclick="revealAnswer('q3')">Show Answer</button>
+        <div class="answer" id="q3">
+          <strong>Answer: B – HSM.</strong><br />
+          An HSM is designed to securely generate, store, and use high‑value keys at scale for servers.[web:192][web:198]
+        </div>
+      </div>
+
+      <div class="quiz-question">
+        <strong>Q4.</strong> Which concept BEST describes requiring 3 out of 5 security officers to authorize key recovery?
+        <ul>
+          <li>A. Least privilege</li>
+          <li>B. M‑of‑N control</li>
+          <li>C. Discretionary access control</li>
+          <li>D. Key stretching</li>
+        </ul>
+        <button class="quiz-btn" onclick="revealAnswer('q4')">Show Answer</button>
+        <div class="answer" id="q4">
+          <strong>Answer: B – M‑of‑N control.</strong><br />
+          M‑of‑N requires a quorum of authorized parties to perform a sensitive operation, like key recovery.
+        </div>
+      </div>
+
+      <div class="quiz-question">
+        <strong>Q5.</strong> Which is the BEST description of key escrow in a corporate environment?
+        <ul>
+          <li>A. Allowing users to share keys freely</li>
+          <li>B. Backing up keys with an independent, controlled system for recovery</li>
+          <li>C. Publishing all public keys in DNS</li>
+          <li>D. Using only symmetric encryption</li>
+        </ul>
+        <button class="quiz-btn" onclick="revealAnswer('q5')">Show Answer</button>
+        <div class="answer" id="q5">
+          <strong>Answer: B.</strong><br />
+          Key escrow means securely archiving keys so they can be recovered under controlled conditions.
+        </div>
+      </div>
+
+      <button class="quiz-btn" onclick="resetScore()">Reset Score</button>
+    </section>
+
+    <!-- Recap -->
+    <section class="card">
+      <div class="section-tag">Recap & Study Plan</div>
+      <h2>🔁 Recap – One Breath Version</h2>
+      <ul>
+        <li>Revocation is how we declare certificates/keys no longer trusted (CRL/OCSP).</li>
+        <li>Key management covers the entire lifecycle from generation to destruction.</li>
+        <li>Cryptoprocessors (TPM/HSM) and secure enclaves protect keys and operations in hardware.</li>
+        <li>Key escrow and M‑of‑N ensure keys can be recovered without giving a single person too much power.</li>
+      </ul>
+      <div class="cta">
+        Study drill: draw the revocation flow (CRL/OCSP), the key lifecycle wheel, a TPM vs HSM table, and an M‑of‑N escrow diagram. Re‑draw them three times over a week.
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // Expanders
+    function toggleExpander(event) {
+      const container = event.currentTarget;
+      container.classList.toggle('open');
+    }
+
+    // Quiz scoring
+    let score = 0;
+    function revealAnswer(id) {
+      const ans = document.getElementById(id);
+      if (!ans) return;
+      const wasHidden = ans.style.display !== 'block';
+      ans.style.display = wasHidden ? 'block' : 'none';
+      if (wasHidden && !ans.dataset.counted) {
+        score++;
+        ans.dataset.counted = 'true';
+        const label = document.getElementById('scoreLabel');
+        if (label) label.textContent = 'Score: ' + score + ' correct';
+      }
+    }
+
+    function resetScore() {
+      score = 0;
+      const label = document.getElementById('scoreLabel');
+      if (label) label.textContent = 'Score: 0 correct';
+      document.querySelectorAll('.answer').forEach(a => {
+        a.style.display = 'none';
+        delete a.dataset.counted;
+      });
+    }
+  </script>
+</body>
+</html>
