@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>3.1.4–3.1.6 – Asymmetric, Hashing & Digital Signatures – SY0-701</title>
+  <style>
+    :root {
+      --bg-main: #020617;
+      --bg-card: #020617;
+      --bg-panel: #0b1220;
+      --accent: #38bdf8;
+      --accent-strong: #f97316;
+      --accent-soft: rgba(56, 189, 248, 0.25);
+      --accent-green: #4ade80;
+      --accent-red: #f97373;
+      --text-main: #e5e7eb;
+      --text-soft: #9ca3af;
+      --border-soft: rgba(148, 163, 184, 0.5);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background:
+        radial-gradient(circle at top left, #1d3557 0, #020617 45%, #000 100%);
+      color: var(--text-main);
+      line-height: 1.7;
+    }
+
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      padding: 18px 16px 10px;
+      background: linear-gradient(
+        to bottom,
+        rgba(15, 23, 42, 0.98),
+        rgba(15, 23, 42, 0.9),
+        transparent
+      );
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid rgba(148, 163, 184, 0.25);
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: clamp(1.7rem, 3vw, 2.3rem);
+      color: var(--accent-strong);
+      text-shadow: 0 0 14px rgba(249, 115, 22, 0.6);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
+    }
+
+    header p {
+      margin: 4px 0 0;
+      text-align: center;
+      color: var(--text-soft);
+      font-size: 0.96rem;
+    }
+
+    .badge-row {
+      margin-top: 10px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px;
+      font-size: 0.78rem;
+    }
+
+    .badge {
+      border-radius: 999px;
+      padding: 4px 10px;
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid rgba(148, 163, 184, 0.4);
+      color: var(--text-soft);
+    }
+
+    .badge span {
+      color: var(--accent-strong);
+      font-weight: 600;
+    }
+
+    main {
+      max-width: 1160px;
+      margin: 10px auto 40px;
+      padding: 0 12px 32px;
+    }
+
+    .layout {
+      display: grid;
+      grid-template-columns: minmax(0, 3.2fr) minmax(0, 2.3fr);
+      gap: 14px;
+    }
+
+    @media (max-width: 960px) {
+      .layout {
+        grid-template-columns: minmax(0, 1fr);
+      }
+    }
+
+    .card {
+      background: radial-gradient(circle at top right, rgba(56, 189, 248, 0.1), transparent 55%),
+                  linear-gradient(145deg, #020617, #020617);
+      border-radius: 14px;
+      padding: 14px 16px;
+      margin: 9px 0;
+      border: 1px solid rgba(148, 163, 184, 0.55);
+      box-shadow: 0 14px 40px rgba(15, 23, 42, 0.9);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .card::before {
+      content: "";
+      position: absolute;
+      inset: -40%;
+      background: radial-gradient(circle at top left,
+        rgba(56, 189, 248, 0.15),
+        transparent 65%);
+      opacity: 0;
+      transition: opacity 0.2s ease-out;
+      pointer-events: none;
+    }
+
+    .card:hover::before {
+      opacity: 1;
+    }
+
+    .section-tag {
+      font-size: 0.72rem;
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
+      color: var(--text-soft);
+      margin-bottom: 3px;
+    }
+
+    h2, h3 {
+      margin: 0 0 6px;
+      color: var(--accent);
+      font-size: 1.12rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .pill {
+      font-size: 0.7rem;
+      padding: 1px 7px;
+      border-radius: 999px;
+      background: rgba(56, 189, 248, 0.1);
+      border: 1px solid rgba(56, 189, 248, 0.7);
+      color: var(--accent-strong);
+    }
+
+    p {
+      margin: 4px 0 8px;
+      font-size: 0.95rem;
+    }
+
+    .key-term {
+      background: rgba(15, 23, 42, 0.9);
+      border-left: 3px solid var(--accent);
+      padding: 7px 9px;
+      margin: 6px 0;
+      border-radius: 6px;
+      font-size: 0.9rem;
+    }
+
+    .key-term strong {
+      color: var(--accent-strong);
+    }
+
+    .note {
+      background: rgba(37, 99, 235, 0.15);
+      border-radius: 7px;
+      padding: 6px 8px;
+      border: 1px dashed rgba(59, 130, 246, 0.7);
+      font-size: 0.86rem;
+    }
+
+    .warning {
+      background: rgba(248, 113, 113, 0.15);
+      border-radius: 7px;
+      padding: 6px 8px;
+      border: 1px solid rgba(248, 113, 113, 0.7);
+      font-size: 0.86rem;
+    }
+
+    .tip {
+      background: rgba(52, 211, 153, 0.12);
+      border-radius: 7px;
+      padding: 6px 8px;
+      border: 1px solid rgba(52, 211, 153, 0.7);
+      font-size: 0.86rem;
+    }
+
+    code {
+      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+      font-size: 0.86rem;
+      background: rgba(15, 23, 42, 0.9);
+      padding: 1px 4px;
+      border-radius: 4px;
+      border: 1px solid rgba(148, 163, 184, 0.45);
+    }
+
+    pre {
+      background: #020617;
+      padding: 9px;
+      overflow-x: auto;
+      border-radius: 10px;
+      border: 1px solid var(--border-soft);
+      font-size: 0.8rem;
+      margin: 6px 0;
+    }
+
+    .diagram-title {
+      font-size: 0.8rem;
+      font-weight: 600;
+      color: var(--accent-strong);
+      margin-bottom: 2px;
+    }
+
+    .diagram-box {
+      background: rgba(15, 23, 42, 0.9);
+      border-radius: 10px;
+      padding: 7px 9px;
+      margin-top: 4px;
+      border: 1px dashed var(--border-soft);
+      font-size: 0.82rem;
+    }
+
+    .flex-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin: 4px 0;
+      font-size: 0.8rem;
+    }
+
+    .chip {
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(148, 163, 184, 0.6);
+    }
+
+    .story-callout {
+      border-left: 3px solid var(--accent-strong);
+      padding-left: 9px;
+      margin: 6px 0;
+      font-size: 0.9rem;
+    }
+
+    .story-speaker {
+      font-weight: 600;
+      color: var(--accent-strong);
+    }
+
+    .mini-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      letter-spacing: 0.09em;
+      color: var(--text-soft);
+    }
+
+    .highlight {
+      background: rgba(56, 189, 248, 0.18);
+      border-radius: 5px;
+      padding: 1px 3px;
+    }
+
+    .small {
+      font-size: 0.8rem;
+      color: var(--text-soft);
+    }
+
+    /* Interactive expanders */
+    .expander {
+      margin: 6px 0;
+      border-radius: 10px;
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid rgba(148, 163, 184, 0.45);
+      overflow: hidden;
+    }
+
+    .expander-header {
+      padding: 6px 9px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      cursor: pointer;
+      font-size: 0.9rem;
+    }
+
+    .expander-header span {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .expander-header:hover {
+      background: rgba(15, 23, 42, 0.9);
+    }
+
+    .expander-body {
+      padding: 6px 9px 8px;
+      border-top: 1px solid rgba(148, 163, 184, 0.35);
+      display: none;
+      font-size: 0.88rem;
+    }
+
+    .expander-icon {
+      font-size: 0.9rem;
+      transition: transform 0.15s ease;
+    }
+
+    .expander.open .expander-body {
+      display: block;
+    }
+
+    .expander.open .expander-icon {
+      transform: rotate(90deg);
+    }
+
+    /* Stepper */
+    .stepper {
+      background: rgba(15, 23, 42, 0.95);
+      border-radius: 10px;
+      border: 1px solid var(--border-soft);
+      padding: 7px 9px;
+      font-size: 0.86rem;
+    }
+
+    .stepper-steps {
+      list-style: none;
+      padding-left: 0;
+      margin: 6px 0;
+    }
+
+    .stepper-steps li {
+      padding: 4px 6px;
+      border-radius: 6px;
+      margin-bottom: 3px;
+      border: 1px solid transparent;
+      position: relative;
+    }
+
+    .stepper-steps li::before {
+      content: "•";
+      margin-right: 4px;
+      color: var(--text-soft);
+    }
+
+    .stepper-steps li.active {
+      border-color: var(--accent);
+      background: rgba(56, 189, 248, 0.13);
+      box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.5);
+    }
+
+    .stepper-steps li.active::before {
+      color: var(--accent-strong);
+    }
+
+    .stepper-controls {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 5px;
+    }
+
+    .btn-mini {
+      padding: 3px 9px;
+      border-radius: 999px;
+      border: 1px solid var(--accent);
+      background: rgba(15, 23, 42, 0.9);
+      color: var(--accent-strong);
+      font-size: 0.78rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .btn-mini:hover {
+      background: var(--accent-soft);
+    }
+
+    /* Quiz */
+    .quiz-question {
+      margin-bottom: 14px;
+      padding: 9px;
+      border-radius: 10px;
+      background: rgba(15, 23, 42, 0.95);
+      border: 1px solid var(--border-soft);
+      font-size: 0.9rem;
+    }
+
+    .quiz-question strong {
+      color: var(--accent-strong);
+    }
+
+    .answer {
+      margin-top: 5px;
+      display: none;
+      padding: 6px 8px;
+      border-radius: 8px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(56, 189, 248, 0.7);
+      font-size: 0.86rem;
+    }
+
+    .quiz-btn {
+      margin-top: 4px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      border: 1px solid var(--accent);
+      background: rgba(15, 23, 42, 0.9);
+      color: var(--accent-strong);
+      font-size: 0.78rem;
+      cursor: pointer;
+    }
+
+    .quiz-btn:hover {
+      background: var(--accent-soft);
+    }
+
+    .score {
+      font-size: 0.86rem;
+      margin-bottom: 6px;
+      color: var(--accent-green);
+    }
+
+    /* Glossary hover */
+    .gloss {
+      border-bottom: 1px dotted rgba(148, 163, 184, 0.9);
+      cursor: help;
+      position: relative;
+    }
+
+    .gloss::after {
+      content: attr(data-tip);
+      position: absolute;
+      left: 0;
+      top: 130%;
+      min-width: 160px;
+      max-width: 260px;
+      background: #020617;
+      padding: 6px 7px;
+      border-radius: 8px;
+      border: 1px solid rgba(148, 163, 184, 0.7);
+      color: var(--text-main);
+      font-size: 0.78rem;
+      line-height: 1.4;
+      opacity: 0;
+      pointer-events: none;
+      transform: translateY(3px);
+      transition: opacity 0.15s ease, transform 0.15s ease;
+      z-index: 20;
+    }
+
+    .gloss:hover::after {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .cta {
+      margin-top: 8px;
+      padding: 7px 9px;
+      border-radius: 10px;
+      background: rgba(37, 99, 235, 0.2);
+      border: 1px dashed rgba(59, 130, 246, 0.8);
+      font-size: 0.9rem;
+    }
+
+    .pulse {
+      animation: pulse 1.7s infinite;
+    }
+
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0.7); }
+      70% { box-shadow: 0 0 0 11px rgba(56, 189, 248, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(56, 189, 248, 0); }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>3.1.4–3.1.6 🔐 Asymmetric, Hashing & Digital Signatures</h1>
+    <p>Public & private keys, one‑way hashes, and cryptographic signatures that prove “I really sent this.”</p>
+    <div class="badge-row">
+      <div class="badge"><span>Domain:</span> 1.4 – Cryptographic Solutions</div>
+      <div class="badge"><span>Exam:</span> CompTIA Security+ SY0‑701</div>
+      <div class="badge"><span>Focus:</span> Asymmetric 🔑 • Hashing 🧬 • Signatures ✍️</div>
+    </div>
+  </header>
+
+  <main>
+    <section class="layout">
+      <article class="card">
+        <div class="section-tag">Big Picture</div>
+        <h2>🧠 Overview – Why These 3 Matter Together</h2>
+        <p>
+          In this lesson you’ll see how <span class="highlight">asymmetric encryption</span>, 
+          <span class="highlight">hashing</span>, and <span class="highlight">digital signatures</span> form a 
+          “crypto team” that gives you confidentiality, integrity, authentication, and non‑repudiation.
+        </p>
+        <div class="key-term">
+          <strong>Asymmetric encryption 🗝️</strong> – uses a <em>key pair</em>: a 
+          <span class="gloss" data-tip="Safe to share with everyone. Used to encrypt or verify signatures.">public key</span> 
+          and a 
+          <span class="gloss" data-tip="Must be kept secret. Used to decrypt or create signatures.">private key</span>.[web:138][web:146][web:149]
+          <br />
+          <strong>Hashing 🧬</strong> – one‑way “fingerprint” of data used for <em>integrity checking</em> and part of signatures.[web:139][web:147][web:145]
+          <br />
+          <strong>Digital signature ✍️</strong> – sender signs a hash with their private key so others can verify authenticity and integrity with the public key.[web:140][web:141][web:143]
+        </div>
+        <p>
+          Modern secure systems (HTTPS, software updates, email signing, VPNs, blockchains, and more) rely heavily on these three working together.[web:141][web:146][web:147]
+        </p>
+      </article>
+
+      <aside class="card">
+        <div class="section-tag">Character Cast</div>
+        <h2>🎭 Alice, Bob & Mallory – Round 2</h2>
+        <p>
+          We reuse the same characters:
+        </p>
+        <ul>
+          <li><strong>Alice 👩‍💻</strong> – sends messages / signs documents.</li>
+          <li><strong>Bob 👨‍💻</strong> – receives and verifies.</li>
+          <li><strong>Mallory 🕵️‍♀️</strong> – attacker sniffing and tampering.</li>
+        </ul>
+        <div class="diagram-box">
+          <div class="diagram-title">Crypto “Super Powers”</div>
+<pre>
+Asymmetric 🔑  ->  Safe key exchange & authentication
+Hashing   🧬  ->  Integrity: detect tampering
+Signatures ✍️ ->  Integrity + authentication + non-repudiation
+</pre>
+          <div class="small">
+            Together, they let Bob say:
+            “Alice really sent this, nobody changed it, and she can’t deny it.”[web:140][web:148][web:63]
+          </div>
+        </div>
+      </aside>
+    </section>
+
+    <!-- 3.1.4 Asymmetric Encryption -->
+    <section class="card">
+      <div class="section-tag">3.1.4 Asymmetric Encryption</div>
+      <h2>🗝️ Asymmetric Encryption – Two Keys, One Relationship</h2>
+      <p>
+        <strong>Asymmetric (public‑key) cryptography</strong> uses a 
+        <span class="highlight">key pair</span>:
+      </p>
+      <ul>
+        <li><strong>Public key 🔓</strong> – can be shared with everyone; used to encrypt or verify.</li>
+        <li><strong>Private key 🔐</strong> – kept secret; used to decrypt or sign.[web:138][web:144][web:146][web:149]</li>
+      </ul>
+      <p>
+        The keys are mathematically linked: what one does, only the other can undo. But from the public key it is 
+        <em>computationally infeasible</em> to calculate the private key with current technology.[web:138][web:146][web:149]
+      </p>
+
+      <div class="diagram-box">
+        <div class="diagram-title">Confidential Message to Bob</div>
+<pre>
+1) Bob generates a key pair:
+   - Bob's Public Key  🔓  (share with world)
+   - Bob's Private Key 🔐  (keep secret)
+
+2) Alice gets Bob's public key 🔓
+
+3) Alice encrypts:
+   Plaintext --> [ Encrypt with Bob's public key ] --> Ciphertext
+
+4) Send Ciphertext over network 🌐
+
+5) Bob decrypts:
+   Ciphertext --> [ Decrypt with Bob's private key ] --> Plaintext
+
+Even if Mallory sees:
+   - Bob's public key
+   - The ciphertext
+she still cannot decrypt it without Bob's private key.[web:138][web:141][web:146][web:149]
+</pre>
+      </div>
+
+      <div class="stepper" id="asym-stepper">
+        <div class="mini-label">Interactive Walkthrough – Click Next</div>
+        <ul class="stepper-steps">
+          <li class="active">Bob generates a key pair and <strong>guards the private key</strong>.</li>
+          <li>Alice obtains Bob’s <strong>public key</strong> from a directory, website, or certificate.</li>
+          <li>Alice encrypts her message using <strong>Bob’s public key</strong>.</li>
+          <li>Anyone (including Mallory) can see the ciphertext, but it looks random.</li>
+          <li>Bob uses his <strong>private key</strong> to decrypt and read the original message.</li>
+        </ul>
+        <div class="stepper-controls">
+          <button class="btn-mini" onclick="stepBackward('asym-stepper')">⬅ Prev step</button>
+          <button class="btn-mini" onclick="stepForward('asym-stepper')">Next step ➡</button>
+        </div>
+      </div>
+
+      <div class="warning">
+        <strong>Performance Drawback ⏳</strong><br />
+        Asymmetric operations are much slower and heavier than symmetric ones, so we usually do 
+        <em>not</em> encrypt large files directly with public‑key crypto. Instead, we encrypt a <strong>small symmetric key</strong> with the public key and use symmetric for the bulk data.[web:138][web:141][web:146]
+      </div>
+
+      <div class="expander" onclick="toggleExpander(event, 'rsa-ecc')">
+        <div class="expander-header">
+          <span>🔎 Key Sizes – RSA vs ECC (Exam‑style Idea)</span>
+          <span class="expander-icon">▶</span>
+        </div>
+        <div class="expander-body" id="rsa-ecc">
+          <p>
+            On the exam you may see that <strong>RSA</strong> often needs larger keys (like 
+            <strong>2048+ bits</strong>) to reach a strong security level.[web:146] Elliptic Curve Cryptography (<strong>ECC</strong>) can provide 
+            similar security with a much shorter key (for example, a 256‑bit ECC key ≈ a 3072‑bit RSA key in strength), 
+            which is why ECC is attractive for mobile devices and constrained systems.[web:146][web:144]
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3.1.5 Hashing -->
+    <section class="card">
+      <div class="section-tag">3.1.5 Hashing</div>
+      <h2>🧬 Hashing – One‑Way Fingerprints for Integrity</h2>
+      <p>
+        A <strong>cryptographic hash function</strong> takes input of <em>any</em> length and outputs a 
+        <em>fixed‑length digest</em> (fingerprint). You can’t realistically reverse it to get the original data.[web:139][web:147][web:66]
+      </p>
+      <div class="key-term">
+        <strong>Digest / Hash 🧾</strong> – the fixed‑size output of the hash function.<br />
+        <strong>One‑way 🔁🚫</strong> – easy to go from data → hash; infeasible to go from hash → original data.[web:66][web:147]
+        <br />
+        <strong>Collision resistance ⚖️</strong> – it should be extremely hard to find two different inputs with the same hash.[web:66][web:145][web:147]
+      </div>
+
+      <div class="diagram-box">
+        <div class="diagram-title">File Integrity Check</div>
+<pre>
+Alice:
+  setup.exe  --hash-->  H1 (example: 9f2a...c7)
+  She publishes: 
+    - Download link for setup.exe
+    - Reference hash H1
+
+Bob:
+  1) Downloads setup.exe
+  2) Runs same hash algorithm -> H2
+  3) Compares H2 with H1
+
+If H2 == H1  ✅  File has integrity.
+If H2 != H1  ❌  Possible tampering or corruption.[web:139][web:147][web:145]
+</pre>
+      </div>
+
+      <div class="expander" onclick="toggleExpander(event, 'hash-passwords')">
+        <div class="expander-header">
+          <span>🔐 How Hashing Helps Passwords</span>
+          <span class="expander-icon">▶</span>
+        </div>
+        <div class="expander-body" id="hash-passwords">
+          <p>
+            Systems typically store <strong>hashes</strong> of passwords, not the passwords themselves. When you log in, 
+            the system hashes the password you typed and compares it to the stored hash. If they match, you’re in.[web:147][web:145]
+          </p>
+          <p>
+            If an attacker steals the database, they only get hashes, not plaintext passwords. Strong, salted hashes (for example, PBKDF2, bcrypt, Argon2 built on SHA‑2) make it much harder to crack them.[web:147][web:145]
+          </p>
+        </div>
+      </div>
+
+      <div class="expander" onclick="toggleExpander(event, 'sha-md5')">
+        <div class="expander-header">
+          <span>⚔️ SHA‑256 vs MD5 (Exam Hint)</span>
+          <span class="expander-icon">▶</span>
+        </div>
+        <div class="expander-body" id="sha-md5">
+          <ul>
+            <li><strong>SHA‑256</strong> – 256‑bit hash, widely recommended for modern integrity and digital signatures.[web:142][web:145][web:147]</li>
+            <li><strong>MD5</strong> – 128‑bit hash, fast but has known collision weaknesses; acceptable for non‑security checks but <em>not</em> for strong security.[web:139][web:142][web:145]</li>
+          </ul>
+          <p>
+            On the exam, if the question is about “<strong>secure integrity validation</strong>” against attackers, pick SHA‑256 (or stronger), not MD5.[web:139][web:142][web:145]
+          </p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3.1.6 Digital Signatures -->
+    <section class="card">
+      <div class="section-tag">3.1.6 Digital Signatures</div>
+      <h2>✍️ Digital Signatures – Proving Who, What, and That It Hasn’t Changed</h2>
+      <p>
+        A <strong>digital signature</strong> combines <span class="highlight">hashing</span> and 
+        <span class="highlight">asymmetric cryptography</span> to provide:
+      </p>
+      <div class="flex-chips">
+        <div class="chip">✅ Integrity – data not changed</div>
+        <div class="chip">🙋 Authentication – who signed it</div>
+        <div class="chip">🚫 Non‑repudiation – signer can’t deny it later</div>
+      </div>
+      <p>
+        Instead of signing the whole document, the signer creates a hash of the data and then uses their private key 
+        to sign that hash.[web:140][web:141][web:143][web:146]
+      </p>
+
+      <div class="diagram-box">
+        <div class="diagram-title">Digital Signature Workflow</div>
+<pre>
+1) Alice wants to sign a message "Hello World":
+
+   message ---> [ Hash function ] ---> digest (H)
+
+2) Alice uses her PRIVATE key 🔐 to sign H:
+
+   Signature = Encrypt(H) with Alice's private key
+
+3) Alice sends:
+   - The original message
+   - The digital signature
+
+4) Bob verifies:
+
+   a) Bob hashes the received message -> H'
+   b) Bob uses Alice's PUBLIC key 🔓 to decrypt the signature -> H
+
+   If H' == H  ✅:
+     - Data is intact (integrity)
+     - Signature could only come from whoever controls Alice's private key (authenticity)
+     - Alice cannot later deny signing it (non‑repudiation)[web:140][web:141][web:143][web:148]
+</pre>
+      </div>
+
+      <div class="expander" onclick="toggleExpander(event, 'certificates')">
+        <div class="expander-header">
+          <span>🌐 Where Do Certificates Fit In?</span>
+          <span class="expander-icon">▶</span>
+        </div>
+        <div class="expander-body" id="certificates">
+          <p>
+            Bob also needs to trust that the public key he’s using really belongs to Alice. That’s where 
+            <strong>digital certificates</strong> and a <strong>Certificate Authority (CA)</strong> come in: a CA signs a certificate 
+            that binds Alice’s identity to her public key.[web:140][web:141][web:63]
+          </p>
+          <p>
+            Browsers use this to show the padlock icon and “connection is secure” for HTTPS websites.[web:63][web:141]
+          </p>
+        </div>
+      </div>
+
+      <div class="tip">
+        Exam pattern: If the question is about <strong>proving the sender’s identity and that the message hasn’t changed</strong>, 
+        the right tool is a <strong>digital signature</strong>, not just encryption alone.[web:140][web:141][web:143][web:148]
+      </div>
+    </section>
+
+    <!-- Story Analogy -->
+    <section class="card">
+      <div class="section-tag">Analogy Story</div>
+      <h2>🏰 Story – The Magic Wax Seal Guild</h2>
+      <p>
+        Imagine a medieval city where important scrolls travel between castles. They use three magical tools:
+        lockboxes (encryption), fingerprint powders (hashes), and wax seals (digital signatures).
+      </p>
+
+      <div class="story-callout">
+        <div class="story-speaker">1) Asymmetric lockbox 🔐</div>
+        Alice wants to send a secret scroll to Bob. Bob owns a special magic chest that locks with a 
+        <strong>public key</strong> key and unlocks with a unique <strong>private key</strong>. Bob copies the “lock” and gives copies to everyone (public key), 
+        but only he owns the “master key” to unlock it (private key). Alice locks her scroll with Bob’s public lock, sends the chest; only Bob’s private key can open it.
+      </div>
+
+      <div class="story-callout">
+        <div class="story-speaker">2) Hash fingerprint powder 🧬</div>
+        Before sealing a chest, a scribe sprinkles special powder on the scroll. When pressed, it leaves a unique 
+        fingerprint (the hash). If anyone edits even one letter, the powder pattern changes completely.
+      </div>
+
+      <div class="story-callout">
+        <div class="story-speaker">3) Wax seal = Digital signature ✍️</div>
+        Alice melts red wax and presses her royal ring onto the wax over the fingerprint. Only she has that ring 
+        (private key). Anyone in the kingdom can look at a known picture of her ring mark (public key) and know the seal belongs to her.
+      </div>
+
+      <p>
+        When Bob receives the chest, he:
+      </p>
+      <ul>
+        <li>Uses his private key to unlock the chest (decrypt).</li>
+        <li>Checks Alice’s seal (verify signature with her public key).</li>
+        <li>Sprinkles his own powder and checks that the fingerprint matches the published one (verify hash).</li>
+      </ul>
+      <p>
+        If all checks pass, Bob knows:
+      </p>
+      <ul>
+        <li>Only he could open the chest (confidentiality via asymmetric encryption).</li>
+        <li>The scroll wasn’t altered (integrity via hash).</li>
+        <li>The seal was Alice’s and only hers (authentication and non‑repudiation via digital signature).</li>
+      </ul>
+    </section>
+
+    <!-- Exam Relevance & Tips -->
+    <section class="card">
+      <div class="section-tag">Exam Relevance</div>
+      <h2>🎯 Exam Tips – Spotting the Right Tool</h2>
+      <ul>
+        <li>
+          If the question is about <strong>secure key exchange</strong> or sending a small secret key safely over a network, 
+          think <strong>asymmetric encryption</strong> (for example, using RSA/ECC to protect a symmetric session key).[web:138][web:141][web:146]
+        </li>
+        <li>
+          If it’s about <strong>detecting tampering</strong> or verifying a downloaded file, think <strong>hashes</strong>, ideally SHA‑256 or stronger.[web:139][web:142][web:145][web:147]
+        </li>
+        <li>
+          If it’s about <strong>proving who signed something and that it wasn’t changed</strong>, think <strong>digital signatures</strong>.[web:140][web:141][web:143][web:148]
+        </li>
+        <li>
+          If they mention <strong>non‑repudiation</strong>, they’re almost always pointing at <strong>digital signatures + PKI</strong>, 
+          not just encryption or hashing alone.[web:140][web:148][web:63]
+        </li>
+      </ul>
+      <div class="cta pulse">
+        Quick active recall: Cover this box and say out loud:
+        “Asymmetric = key exchange & authentication, Hash = integrity, Signature = integrity + authentication + non‑repudiation.”
+      </div>
+    </section>
+
+    <!-- Quiz -->
+    <section class="card">
+      <div class="section-tag">Interactive Quiz</div>
+      <h2>📝 Quiz – Click to Reveal Answers</h2>
+      <div class="score" id="scoreLabel">Score: 0 correct</div>
+
+      <div class="quiz-question">
+        <strong>Q1.</strong> Which key is normally shared publicly in an asymmetric system?
+        <ul>
+          <li>A. Private key</li>
+          <li>B. Session key</li>
+          <li>C. Public key</li>
+          <li>D. Hash key</li>
+        </ul>
+        <button class="quiz-btn" onclick="revealAnswer('q1','C')">Show Answer</button>
+        <div class="answer" id="q1">
+          <strong>Answer: C – Public key.</strong><br />
+          Public keys are designed to be shared openly; private keys must be kept secret.[web:138][web:146][web:149]
+        </div>
+      </div>
+
+      <div class="quiz-question">
+        <strong>Q2.</strong> What is the main purpose of a cryptographic hash function?
+        <ul>
+          <li>A. Confidentiality</li>
+          <li>B. Integrity checking</li>
+          <li>C. Availability</li>
+          <li>D. Key exchange</li>
+        </ul>
+        <button class="quiz-btn" onclick="revealAnswer('q2','B')">Show Answer</button>
+        <div class="answer" id="q2">
+          <strong>Answer: B – Integrity checking.</strong><br />
+          Hashes act as fingerprints so you can tell if data has been modified.[web:139][web:147][web:145]
+        </div>
+      </div>
+
+      <div class="quiz-question">
+        <strong>Q3.</strong> A user downloads a file and compares its SHA‑256 hash to the value on the vendor’s website. What is this verifying?</strong>
+        <ul>
+          <li>A. Confidentiality</li>
+          <li>B. Integrity</li>
+          <li>C. Availability</li>
+          <li>D. Non‑repudiation</li>
+        </ul>
+        <button class="quiz-btn" onclick="revealAnswer('q3','B')">Show Answer</button>
+        <div class="answer" id="q3">
+          <strong>Answer: B – Integrity.</strong><br />
+          Matching hashes show the file was not changed in transit (integrity).[web:139][web:142][web:145]
+        </div>
+      </div>
+
+      <div class="quiz-question">
+        <strong>Q4.</strong> Which combination MOST accurately describes a digital signature?</strong>
+        <ul>
+          <li>A. Hashing only</li>
+          <li>B. Symmetric encryption + hash</li>
+          <li>C. Hash of data, encrypted with the sender’s private key</li>
+          <li>D. Plaintext encrypted with the receiver’s public key</li>
+        </ul>
+        <button class="quiz-btn" onclick="revealAnswer('q4','C')">Show Answer</button>
+        <div class="answer" id="q4">
+          <strong>Answer: C.</strong><br />
+          A digital signature is typically a hash of the data signed with the sender's private key.[web:140][web:141][web:143][web:148]
+        </div>
+      </div>
+
+      <div class="quiz-question">
+        <strong>Q5.</strong> On Security+, “non‑repudiation” is MOST closely provided by:</strong>
+        <ul>
+          <li>A. Symmetric encryption</li>
+          <li>B. Asymmetric encryption only</li>
+          <li>C. Hashing only</li>
+          <li>D. Digital signatures with PKI</li>
+        </ul>
+        <button class="quiz-btn" onclick="revealAnswer('q5','D')">Show Answer</button>
+        <div class="answer" id="q5">
+          <strong>Answer: D – Digital signatures with PKI.</strong><br />
+          Signatures prove who signed what, and PKI/certificates bind keys to identities.[web:140][web:143][web:148][web:63]
+        </div>
+      </div>
+
+      <div class="quiz-question">
+        <strong>Q6.</strong> Why don’t we usually encrypt large files directly with RSA?</strong>
+        <ul>
+          <li>A. RSA cannot encrypt any data</li>
+          <li>B. RSA keys are always too short</li>
+          <li>C. RSA operations are slow and resource‑intensive</li>
+          <li>D. RSA is only for hashing</li>
+        </ul>
+        <button class="quiz-btn" onclick="revealAnswer('q6','C')">Show Answer</button>
+        <div class="answer" id="q6">
+          <strong>Answer: C.</strong><br />
+          Asymmetric ciphers like RSA are computationally expensive, so we use them mainly to protect small symmetric keys.[web:138][web:141][web:146]
+        </div>
+      </div>
+
+      <button class="quiz-btn" onclick="resetScore()">Reset Score</button>
+    </section>
+
+    <!-- Recap & Study Plan -->
+    <section class="card">
+      <div class="section-tag">Recap & Study Plan</div>
+      <h2>🔁 Recap – Say It in Your Own Words</h2>
+      <ul>
+        <li>Asymmetric = public key to encrypt/verify, private key to decrypt/sign.</li>
+        <li>Hash = one‑way fingerprint for integrity (and part of signatures).</li>
+        <li>Digital signature = hash signed with private key, verified with public key.</li>
+        <li>Non‑repudiation comes from signatures and PKI, not just encryption.</li>
+      </ul>
+      <div class="cta">
+        <strong>Spaced repetition idea:</strong><br />
+        Today – read and click through all expanders.  
+        In 2 days – redraw the diagrams from memory.  
+        In 1 week – explain asymmetric vs symmetric vs hashing vs signatures without notes.
+      </div>
+    </section>
+  </main>
+
+  <script>
+    // Expanders
+    function toggleExpander(event, id) {
+      const container = event.currentTarget;
+      container.classList.toggle('open');
+    }
+
+    // Stepper controls
+    function stepForward(stepperId) {
+      const stepper = document.getElementById(stepperId);
+      if (!stepper) return;
+      const items = stepper.querySelectorAll('.stepper-steps li');
+      let idx = -1;
+      items.forEach((li, i) => {
+        if (li.classList.contains('active')) idx = i;
+      });
+      if (idx === -1) {
+        items[0].classList.add('active');
+        return;
+      }
+      items[idx].classList.remove('active');
+      const next = (idx + 1) % items.length;
+      items[next].classList.add('active');
+    }
+
+    function stepBackward(stepperId) {
+      const stepper = document.getElementById(stepperId);
+      if (!stepper) return;
+      const items = stepper.querySelectorAll('.stepper-steps li');
+      let idx = -1;
+      items.forEach((li, i) => {
+        if (li.classList.contains('active')) idx = i;
+      });
+      if (idx === -1) {
+        items[0].classList.add('active');
+        return;
+      }
+      items[idx].classList.remove('active');
+      const prev = (idx - 1 + items.length) % items.length;
+      items[prev].classList.add('active');
+    }
+
+    // Quiz scoring
+    let score = 0;
+    function revealAnswer(id, correctLetter) {
+      const ans = document.getElementById(id);
+      if (!ans) return;
+      const wasHidden = ans.style.display !== 'block';
+      ans.style.display = (wasHidden ? 'block' : 'none');
+      if (wasHidden && !ans.dataset.counted) {
+        score++;
+        ans.dataset.counted = 'true';
+        const label = document.getElementById('scoreLabel');
+        if (label) {
+          label.textContent = 'Score: ' + score + ' correct';
+        }
+      }
+    }
+
+    function resetScore() {
+      score = 0;
+      const label = document.getElementById('scoreLabel');
+      if (label) label.textContent = 'Score: 0 correct';
+      document.querySelectorAll('.answer').forEach(a => {
+        a.style.display = 'none';
+        delete a.dataset.counted;
+      });
+    }
+
+    function toggleAnswer(id) {
+      const el = document.getElementById(id);
+      if (!el) return;
+      el.style.display = (el.style.display === 'block') ? 'none' : 'block';
+    }
+  </script>
+</body>
+</html>
