@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔐 Lesson 4A: AUTHENTICATION – Ultra Deep Dive</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+            transition: background-color 0.2s, color 0.2s;
+        }
+        body {
+            --bg: #020617;
+            --bg-card: #0f172a;
+            --text: #e2e8f0;
+            --text-light: #94a3b8;
+            --accent: #38bdf8;
+            --accent-strong: #f97316;
+            --border: #1e293b;
+            --glow: rgba(56, 189, 248, 0.4);
+            --header-bg: #0a0f1f;
+            background: var(--bg);
+            color: var(--text);
+            padding: 1rem;
+            line-height: 1.6;
+        }
+        body.light-mode {
+            --bg: #f8fafc;
+            --bg-card: #ffffff;
+            --text: #0f172a;
+            --text-light: #334155;
+            --accent: #0284c7;
+            --accent-strong: #ea580c;
+            --border: #cbd5e1;
+            --glow: rgba(2, 132, 199, 0.2);
+            --header-bg: #e2e8f0;
+        }
+        .sticky-header {
+            position: sticky;
+            top: 0.5rem;
+            z-index: 50;
+            background: var(--header-bg);
+            border-radius: 3rem;
+            padding: 0.75rem 1.8rem;
+            margin-bottom: 2rem;
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            border: 1px solid var(--border);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.6);
+            backdrop-filter: blur(5px);
+        }
+        .badge {
+            background: var(--accent);
+            color: #020617;
+            font-weight: 800;
+            padding: 0.3rem 1.2rem;
+            border-radius: 40px;
+            font-size: 1rem;
+        }
+        .progress-badge {
+            background: var(--accent-strong);
+        }
+        .progress-bar-container {
+            width: 200px;
+            height: 10px;
+            background: var(--border);
+            border-radius: 10px;
+        }
+        .scroll-progress {
+            height: 100%;
+            width: 0%;
+            background: linear-gradient(90deg, var(--accent), var(--accent-strong));
+            border-radius: 10px;
+        }
+        .theme-toggle {
+            background: none;
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 0.3rem 1.2rem;
+            border-radius: 40px;
+            cursor: pointer;
+        }
+        .layout {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+            gap: 1.8rem;
+            max-width: 1500px;
+            margin: 0 auto;
+        }
+        .card {
+            background: var(--bg-card);
+            border-radius: 2rem;
+            padding: 2rem 1.8rem;
+            border: 1px solid var(--border);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+            transition: 0.2s;
+            display: flex;
+            flex-direction: column;
+            gap: 1.2rem;
+        }
+        .card:hover {
+            box-shadow: 0 0 30px var(--glow);
+            transform: translateY(-5px);
+        }
+        .card-header {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            font-size: 1.8rem;
+            font-weight: 700;
+            border-bottom: 3px dashed var(--accent);
+            padding-bottom: 0.7rem;
+        }
+        .key-term {
+            display: inline-block;
+            background: #1e293b;
+            color: var(--accent);
+            padding: 0.2rem 1rem;
+            border-radius: 30px;
+            font-weight: 600;
+            border: 1px solid var(--accent);
+            margin: 0.2rem 0;
+        }
+        .gloss {
+            position: relative;
+            border-bottom: 2px dotted var(--accent-strong);
+            cursor: help;
+            font-weight: 600;
+        }
+        .gloss:hover::after {
+            content: attr(data-gloss);
+            position: absolute;
+            bottom: 150%;
+            left: 0;
+            background: var(--accent-strong);
+            color: #020617;
+            padding: 0.4rem 1rem;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            white-space: nowrap;
+            z-index: 200;
+            box-shadow: 0 5px 15px black;
+        }
+        .expander {
+            background: #1e293b;
+            border-radius: 40px;
+            padding: 0.8rem 1.5rem;
+            cursor: pointer;
+            font-weight: 600;
+            display: flex;
+            justify-content: space-between;
+            border: 1px solid var(--border);
+            margin-top: 0.5rem;
+        }
+        .expander-content {
+            display: none;
+            padding: 1.2rem;
+            background: #02061760;
+            border-radius: 25px;
+            margin-top: 0.8rem;
+            border-left: 4px solid var(--accent);
+        }
+        .expander.open .expander-content {
+            display: block;
+        }
+        pre.diagram {
+            background: #0a0f1f;
+            padding: 1.2rem;
+            border-radius: 25px;
+            border-left: 8px solid var(--accent-strong);
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+            white-space: pre-wrap;
+            font-size: 0.95rem;
+            color: #bbf7d0;
+        }
+        .quiz-option {
+            background: #1e293b;
+            padding: 0.7rem 1.2rem;
+            border-radius: 50px;
+            margin: 0.4rem 0;
+            cursor: pointer;
+            border: 1px solid var(--border);
+        }
+        .quiz-option.selected {
+            background: var(--accent);
+            color: #020617;
+            font-weight: bold;
+        }
+        .score-badge {
+            background: gold;
+            color: black;
+            padding: 0.2rem 1.2rem;
+            border-radius: 30px;
+        }
+        .game-btn {
+            background: var(--accent);
+            border: none;
+            color: #020617;
+            padding: 0.6rem 1.2rem;
+            border-radius: 40px;
+            font-weight: bold;
+            cursor: pointer;
+            margin: 0.2rem;
+        }
+        .mascot {
+            display: inline-block;
+            animation: bounce 2s infinite;
+            font-size: 2.8rem;
+        }
+        @keyframes bounce { 0%,100%{ transform: translateY(0); } 50%{ transform: translateY(-8px); } }
+        #easterEgg { display: none; background: #f97316; color: black; padding: 1rem; border-radius: 30px; margin: 1rem; text-align: center; }
+        .footer-note { margin-top: 4rem; text-align: center; color: var(--text-light); }
+    </style>
+</head>
+<body>
+    <div class="sticky-header">
+        <div class="title-badge">
+            <span class="badge">📘 4A · AUTHENTICATION</span>
+            <span class="badge progress-badge" id="badgeLevel">🔰 Zero</span>
+        </div>
+        <div class="level-up">
+            <span>📶 scroll</span>
+            <div class="progress-bar-container"><div class="scroll-progress" id="scrollProgress"></div></div>
+            <button class="theme-toggle" id="themeToggle">🌓 mode</button>
+        </div>
+    </div>
+
+    <!-- easter egg trigger -->
+    <div style="text-align:center;" onclick="egg()">🪄 <small>(tap for secret)</small></div>
+    <div id="easterEgg">🎉 YOU FOUND THE EASTER EGG! Authentication is like a 3‑headed guard dog (Cerberus/Kerberos)!</div>
+
+    <div class="layout">
+
+        <!-- 1. AUTHENTICATION DESIGN + CIA (deep) -->
+        <div class="card">
+            <div class="card-header"><span>🎯</span> Design & CIA</div>
+            <p><span class="gloss" data-gloss="Confidentiality, Integrity, Availability">CIA triad</span> in authentication:</p>
+            <ul style="margin-left:1.5rem;">
+                <li><span class="key-term">🔒 confidentiality</span> – credentials must stay secret. If a password leaks, attacker can impersonate. Example: hashing (not storing plaintext).</li>
+                <li><span class="key-term">⚖️ integrity</span> – the system must be hard to fool. Attackers shouldn't be able to bypass or replay stolen tokens.</li>
+                <li><span class="key-term">⏱️ availability</span> – authentication must be fast enough; users won't wait 2 minutes. Also redundancy for auth servers.</li>
+            </ul>
+            <pre class="diagram">
+╔════════════════════════════╗
+║   AUTHENTICATION FLOW      ║
+║  User──(credentials)──┐    ║
+║  Auth server compares  │    ║
+║  stored hash vs input  ▼    ║
+║  ┌───────────────────────┐  ║
+║  │  match? → yes → token │  ║
+║  └───────────────────────┘  ║
+╚════════════════════════════╝
+            </pre>
+            <div class="expander" onclick="this.classList.toggle('open')">
+                <span>📘 Why availability matters in MFA ▼</span><span>👇</span>
+            </div>
+            <div class="expander-content">
+                <p>If the authentication server goes down (DDoS or failure), nobody can log in – that's a availability failure. So we use redundant servers. Also, if a biometric scanner is too slow (high throughput time), people get angry and might disable security.</p>
+            </div>
+        </div>
+
+        <!-- 2. PASSWORDS: policy, NIST, managers (long) -->
+        <div class="card">
+            <div class="card-header"><span>🔑</span> Passwords (deep)</div>
+            <p><span class="key-term">password policies</span> length, complexity, age, history. But NIST SP 800-63B now discourages complexity & regular change – because users write down or reuse. Instead: <span class="gloss" data-gloss="minimum 8 chars, max 64, allow all ASCII">modern best practices</span>.</p>
+            <pre class="diagram">
+🔐 old policy:  change every 90d, 3 number, 1 symbol → users: "Pass1!" then "Pass2!"
+🔓 new NIST: long passphrase (horse-staple-correct), no composition rules, check against breached lists.
+            </pre>
+            <p><span class="key-term">password manager</span> – master password unlocks vault. Examples: LastPass, 1Password, iCloud Keychain. They generate random 20‑char passwords. Risk: master password compromise or cloud vendor breach. But still safer than reuse.</p>
+            <div class="expander" onclick="this.classList.toggle('open')">
+                <span>🧠 password hashing explained (salt) ▼</span><span>🧂</span>
+            </div>
+            <div class="expander-content">
+                <p>When you set a password, the system adds a random string (salt) and hashes it (SHA‑256, bcrypt). The hash is stored. On login, the same salt+hash is recomputed and compared. Salt prevents rainbow table attacks. Example: password "P@ssw0rd" + salt "8x3F" → hash "a1b2..." even if two users have same password, hashes differ because salts are unique.</p>
+            </div>
+        </div>
+
+        <!-- 3. MFA + factors (detailed) -->
+        <div class="card">
+            <div class="card-header"><span>🔐</span> Multi‑factor (MFA)</div>
+            <p><span class="key-term">Something you KNOW</span> (password, PIN) – but knowledge alone is weak (phishing, keylogging). <span class="key-term">HAVE</span> (smart card, phone, token) – attacker must steal physical device. <span class="key-term">ARE</span> (fingerprint, face) – biometrics. <span class="key-term">SOMEWHERE</span> (location, IP, GPS) – contextual.</p>
+            <pre class="diagram">
+🌍 impossible travel: login from NYC at 9am, then from LA at 10am – physically impossible → block.
+📱 2FA = exactly two factors (e.g., password + OTP). MFA = two or more (could be 3).
+            </pre>
+            <p><span class="key-term">two‑step verification</span> (2SV) often means same factor twice? Actually, SMS + password is still two different types? SMS is "have" (phone) but SIM swap makes it weak. So true MFA uses different categories.</p>
+        </div>
+
+        <!-- 4. BIOMETRICS (super deep) -->
+        <div class="card">
+            <div class="card-header"><span>🖐️</span> Biometrics – deep metrics</div>
+            <p><span class="key-term">enrollment</span>: sensor captures sample → feature extraction → template stored.</p>
+            <p><span class="key-term">FAR (False Acceptance Rate)</span> – impostor accepted (Type II). Very dangerous. <span class="key-term">FRR (False Rejection)</span> – real user rejected (Type I). <span class="key-term">CER (Crossover Error Rate)</span> – where FAR = FRR; lower CER = better accuracy.</p>
+            <pre class="diagram">
+Example: fingerprint scanner FAR=0.1% means 1 in 1000 impostors gets in.
+Face ID uses infrared + neural networks to avoid photos.
+            </pre>
+            <div class="expander" onclick="this.classList.toggle('open')">
+                <span>📏 more metrics: throughput, FER ▼</span><span>⏱️</span>
+            </div>
+            <div class="expander-content">
+                <p><span class="key-term">Throughput</span> – how fast can the system authenticate? High‑traffic (airport) needs < 2 seconds. <span class="key-term">Failure to Enroll (FER)</span> – some users can't enroll (e.g., missing fingers, scarred prints). Also <span class="key-term">spoof resistance</span>: liveness detection (blink, heat) prevents fake fingers.</p>
+                <p>Iris scan has extremely low FAR (~1:1,000,000) but costly. Fingerprint is cheap but can be fooled with gelatin.</p>
+            </div>
+        </div>
+
+        <!-- 5. HARD TOKENS (smart card, OTP, FIDO) -->
+        <div class="card">
+            <div class="card-header"><span>💳</span> Hard tokens & FIDO</div>
+            <p><span class="key-term">smart card</span> – contains digital certificate + private key, requires PIN to unlock (something you have + know). Used with a reader. Contact or NFC.</p>
+            <p><span class="key-term">OTP token</span> (keyfob) – generates one‑time password every 60s (TOTP) or based on counter (HOTP). Example: RSA SecurID.</p>
+            <p><span class="key-term">FIDO U2F / FIDO2</span> – uses public‑key crypto. Private key never leaves device. During registration, device creates key pair; public key goes to server. Login: server sends challenge, device signs with private key (user presence via button or biometric).</p>
+            <pre class="diagram">
+FIDO2 WebAuthn:
+[device]─(public key)─→[website]
+[website]─(challenge)─→[device]
+[device signs]──(signature)─→[website verifies with public key]
+            </pre>
+        </div>
+
+        <!-- 6. SOFT TOKENS & PASSWORDLESS (long) -->
+        <div class="card">
+            <div class="card-header"><span>📲</span> Soft tokens + passwordless</div>
+            <p><span class="key-term">SMS/email OTP</span> – easy but vulnerable to SIM swapping, interception. Considered "two‑step verification", not true MFA because phone number can be hijacked.</p>
+            <p><span class="key-term">authenticator app</span> (Google Authenticator, Microsoft) – TOTP based on shared secret stored in app. More secure because secret never transmitted. Still, malware on phone could steal tokens.</p>
+            <p><span class="key-term">passwordless (FIDO2/WebAuthn)</span> – Windows Hello, Touch ID, Face ID. You authenticate with a local gesture (PIN, biometric). Private key unlocked locally, no password sent to server.</p>
+            <div class="expander" onclick="this.classList.toggle('open')">
+                <span>🛡️ attestation explained ▼</span><span>🔏</span>
+            </div>
+            <div class="expander-content">
+                <p><span class="key-term">attestation</span> – during FIDO2 registration, the authenticator can prove it's a genuine model (e.g., YubiKey 5) using a certificate signed by the manufacturer. This prevents fake hardware. The attestation certificate is not unique per device (privacy). Relying party can enforce that only trusted models are used.</p>
+            </div>
+        </div>
+
+        <!-- 7. LONG STORY ANALOGY (castle) extended -->
+        <div class="card" style="grid-column: span 2;">
+            <div class="card-header"><span>🏰</span> The great castle of Cognito</div>
+            <p>Long ago, the kingdom of Cyberia had a grand castle protected by three gates. The outer gate asked: "What is the royal phrase?" (knowledge). Many knights used easy phrases like "password123". An evil sorcerer eavesdropped and got in. The king then added a second gate: a magical ring that glowed only for the true knight (something you have). But the sorcerer stole a ring. So the third gate used a magical mirror that recognised the knight's face (biometric). Even if the sorcerer knew the phrase and had the ring, his face didn't match – FAR was zero! But one day, the mirror falsely rejected the true knight because he had a cold (FRR). Annoying but safe. Then the king added a location spell: if a login came from the north tower and one minute later from the south, it would raise the alarm (impossible travel). The castle also used a password manager scroll that generated long random phrases for each servant, so even if one scroll leaked, the others were safe. And the king's elite guard used FIDO2 rings with biometric – no shared secrets, just a wave. The castle was finally secure. And that's why MFA is like three magical gates.</p>
+            <p class="mascot">🐉🛡️⚔️</p>
+        </div>
+
+        <!-- 8. QUIZ (5+ questions, expanded) -->
+        <div class="card" id="quizCard">
+            <div class="card-header"><span>❓</span> Mastery quiz <span class="score-badge" id="scoreDisplay">0/6</span></div>
+            <div id="quizContainer"></div>
+            <button class="game-btn" id="resetQuiz">🔄 restart</button>
+            <div id="quizFeedback" class="quiz-feedback"></div>
+            <p id="badgeMessage" style="font-weight:bold;"></p>
+        </div>
+
+        <!-- 9. SUPERHERO MISSION (detailed) -->
+        <div class="card">
+            <div class="card-header"><span>🦸</span> Mission: Secure City</div>
+            <p>The city of <strong>Authville</strong> has been hit by a wave of account takeovers because they only use passwords. You, <strong>Captain MFA</strong>, must deploy a complete authentication overhaul. Describe step‑by‑step what you implement.</p>
+            <ul style="margin-left:1.2rem;">
+                <li>1. Roll out password manager for all citizens.</li>
+                <li>2. Enroll everyone's fingerprint (biometric) – but watch FAR/FRR.</li>
+                <li>3. Issue YubiKeys (FIDO2) for critical infrastructure.</li>
+                <li>4. Set conditional access: block logins from impossible travel.</li>
+                <li>5. Use Windows Hello for government devices.</li>
+                <li>6. Train citizens on why SMS 2FA is weak.</li>
+            </ul>
+            <div class="expander" onclick="this.classList.toggle('open')">
+                <span>📋 after‑action report</span><span>✅</span>
+            </div>
+            <div class="expander-content">
+                <p>After 3 months, account takeover dropped 95%. A few false rejections (FRR) annoyed some citizens, but they learned to use backup codes. The villain tried SIM swapping, but FIDO2 keys blocked him.</p>
+            </div>
+        </div>
+
+        <!-- 10. SILLY MNEMONIC (expanded) -->
+        <div class="card">
+            <div class="card-header"><span>🎤</span> Mnemonic: P.H.A.S.E.K.</div>
+            <p><strong>Pizza Hut Always Serves Extra Kings</strong> 🍕</p>
+            <ul>
+                <li><span class="key-term">P</span> = Password (know)</li>
+                <li><span class="key-term">H</span> = Have (token, phone)</li>
+                <li><span class="key-term">A</span> = Are (biometric)</li>
+                <li><span class="key-term">S</span> = Somewhere (location)</li>
+                <li><span class="key-term">E</span> = Extra factor (like security questions? but better use TOTP)</li>
+                <li><span class="key-term">K</span> = Keys (FIDO security keys)</li>
+            </ul>
+            <p>Alternative: <em>My Pet Hawk Eats Soggy Kale</em> – MFA, Password, Have, Are, Somewhere, Keys.</p>
+        </div>
+
+        <!-- 11. TREASURE MAP -->
+        <div class="card">
+            <div class="card-header"><span>🗺️</span> Treasure map: connections</div>
+            <p>This lesson links to:</p>
+            <ul>
+                <li>🔗 <strong>4B Authorization</strong> – after we authenticate, what permissions do we grant? (RBAC, ABAC).</li>
+                <li>🔗 <strong>4C Identity Management</strong> – how accounts are provisioned and federated (SAML, OAuth).</li>
+                <li>🔗 <strong>2.8 Cryptography</strong> – hashing, digital signatures, PKI used in smart cards and FIDO.</li>
+                <li>🔗 <strong>3.2 Physical security</strong> – biometric sensors, hardware tokens.</li>
+            </ul>
+        </div>
+
+        <!-- 12. NOTEBOOK CHALLENGE -->
+        <div class="card">
+            <div class="card-header"><span>✏️</span> Notebook drawing</div>
+            <p>Draw a detailed MFA system for a spaceship. Include:</p>
+            <ul>
+                <li>Pilot entering a password (know).</li>
+                <li>Smart card reader (have).</li>
+                <li>Retinal scanner (are).</li>
+                <li>GPS showing ship location (somewhere).</li>
+                <li>Add labels and show how FAR/FRR could happen.</li>
+            </ul>
+            <pre class="diagram">
+   [🧑‍🚀]─(password)─→[console]
+     |    +smartcard     |
+     └─(retina scan)────→[auth server]─→✅ engine start
+            </pre>
+        </div>
+
+        <!-- 13. MINI GAME (match factor) -->
+        <div class="card">
+            <div class="card-header"><span>🎮</span> Factor match</div>
+            <div class="mini-game" id="gameArea">
+                <p>Click the correct factor category:</p>
+                <button class="game-btn" onclick="checkFactor('know')">🔤 password</button>
+                <button class="game-btn" onclick="checkFactor('have')">💳 smart card</button>
+                <button class="game-btn" onclick="checkFactor('are')">👆 fingerprint</button>
+                <button class="game-btn" onclick="checkFactor('somewhere')">📍 IP geolocation</button>
+                <button class="game-btn" onclick="checkFactor('otp')">⏱️ TOTP (hint: have?)</button>
+            </div>
+            <p id="gameFeedback">🤔 click a button to see factor type</p>
+        </div>
+
+        <!-- 14. ASK TUTOR (mock with long answers) -->
+        <div class="card">
+            <div class="card-header"><span>🤖</span> Ask Prof. Auth</div>
+            <input type="text" id="tutorQuestion" placeholder="e.g., what is attestation?" style="width:100%; padding:0.7rem; border-radius:50px; border:1px solid var(--border); background:var(--bg-card); color:var(--text);">
+            <button class="game-btn" onclick="answerTutor()">Ask</button>
+            <p id="tutorAnswer">🦉 I'm here to help! Type a question.</p>
+        </div>
+
+        <!-- 15. REAL NEWS SNIPPET -->
+        <div class="card">
+            <div class="card-header"><span>📰</span> Real‑world news</div>
+            <p><em>Feb 2025 – "Microsoft disables SMS as MFA by default, pushes FIDO2 keys after surge in SIM‑swap attacks."</em> This shows soft tokens via SMS are risky. Also, last year a major breach was because an admin reused password (no MFA).</p>
+        </div>
+
+        <!-- 16. PARENT/TEACHER GUIDE -->
+        <div class="card">
+            <div class="card-header"><span>👪</span> Parent guide</div>
+            <p>Discuss with your young learner:</p>
+            <ul>
+                <li>Why do you need more than a password?</li>
+                <li>What's the difference between 2FA and MFA?</li>
+                <li>Why is a fingerprint more secure but also can fail (FRR)?</li>
+                <li>Why do we need password managers? (prevent reuse)</li>
+            </ul>
+        </div>
+
+        <!-- 17. SILLY SONG (expanded) -->
+        <div class="card">
+            <div class="card-header"><span>🎵</span> Silly song</div>
+            <pre>
+(to the tune of "If You're Happy and You Know It")
+If you want to keep your account secure, use MFA! (clap clap)
+If you want to keep your account secure, use MFA! (clap clap)
+Use a token and your face, and a password just in case,
+If you want to keep your account secure, use MFA! (clap clap)
+
+(verse 2) FAR is bad, FRR's a pain, but CER is the sweet spot...
+            </pre>
+        </div>
+
+        <!-- 18. EXTRA DEEP: passwordless attestation again -->
+        <div class="card">
+            <div class="card-header"><span>🧪</span> Attestation deep dive</div>
+            <p>When you register a FIDO2 security key, it can send an <span class="key-term">attestation statement</span> that proves the key's manufacturer and model. This is done using a device certificate embedded during manufacturing. The server can check that the key is a genuine YubiKey or TPM and meets security policies. This prevents someone from using a software‑emulated key. However, attestation is optional to preserve privacy (some keys use a batch attestation key).</p>
+        </div>
+    </div>
+
+    <!-- filename suggestion -->
+    <div class="footer-note">
+        📁 <strong>Filename:</strong> lesson-4a-authentication-ultra.html <br>
+        🔗 Add to index: <code>&lt;a href="lesson-4a-authentication-ultra.html"&gt;🔐 Module 4A: Authentication (mega deep dive)&lt;/a&gt;</code>
+        <br><br>
+        <span class="mascot">🧑‍🎓</span> you've finished Lesson 4A – ready for 4B!
+    </div>
+
+    <script>
+        // ---------- quiz data (6 questions) ----------
+        const quizData = [
+            { q: "Which is an example of 'something you have'?", options: ["Password", "Smart card", "Fingerprint", "GPS"], correct: 1 },
+            { q: "What does FAR stand for?", options: ["False Acceptance Rate", "Fast Authentication Request", "Factor Availability Ratio", "Final Auth Result"], correct: 0 },
+            { q: "Which protocol is passwordless?", options: ["FIDO2/WebAuthn", "SAML", "LDAP", "RADIUS"], correct: 0 },
+            { q: "Impossible travel detection is based on which factor?", options: ["Somewhere you are", "Something you have", "Something you know", "Something you are"], correct: 0 },
+            { q: "What does attestation in FIDO2 prove?", options: ["The device model is genuine", "The user's identity", "Password strength", "Network location"], correct: 0 },
+            { q: "Why is SMS 2FA considered weak?", options: ["Vulnerable to SIM swapping", "Too long", "Requires smartphone", "Expensive"], correct: 0 }
+        ];
+
+        function renderQuiz() {
+            let html = '';
+            quizData.forEach((item, idx) => {
+                html += `<div class="quiz-question" data-qidx="${idx}"><strong>${idx+1}. ${item.q}</strong><br>`;
+                item.options.forEach((opt, optIdx) => {
+                    html += `<div class="quiz-option" data-q="${idx}" data-opt="${optIdx}">${opt}</div>`;
+                });
+                html += '</div><br>';
+            });
+            document.getElementById('quizContainer').innerHTML = html;
+            document.querySelectorAll('.quiz-option').forEach(el => {
+                el.addEventListener('click', function() {
+                    if (this.classList.contains('selected')) return;
+                    const qIdx = this.dataset.q;
+                    document.querySelectorAll(`.quiz-option[data-q="${qIdx}"]`).forEach(opt => opt.classList.remove('selected'));
+                    this.classList.add('selected');
+                    updateScore();
+                });
+            });
+            updateScore();
+        }
+
+        function updateScore() {
+            let s = 0;
+            quizData.forEach((item, idx) => {
+                const sel = document.querySelector(`.quiz-option[data-q="${idx}"].selected`);
+                if (sel && parseInt(sel.dataset.opt) === item.correct) s++;
+            });
+            document.getElementById('scoreDisplay').innerText = `${s}/${quizData.length}`;
+            const badge = document.getElementById('badgeLevel');
+            if (s === quizData.length) badge.innerHTML = '🏅 MFA Grandmaster';
+            else if (s >= 4) badge.innerHTML = '🛡️ Security Pro';
+            else if (s >= 2) badge.innerHTML = '🔰 Apprentice';
+            else badge.innerHTML = '🐣 Beginner';
+            if (s === quizData.length) document.getElementById('badgeMessage').innerText = '🎉 You mastered Lesson 4A!';
+            else document.getElementById('badgeMessage').innerText = '';
+        }
+
+        document.getElementById('resetQuiz').addEventListener('click', () => {
+            document.querySelectorAll('.quiz-option.selected').forEach(opt => opt.classList.remove('selected'));
+            updateScore();
+        });
+
+        // factor game
+        function checkFactor(type) {
+            const fb = document.getElementById('gameFeedback');
+            if (type === 'know') fb.innerHTML = '✅ password = something you KNOW.';
+            else if (type === 'have') fb.innerHTML = '✅ smart card = something you HAVE.';
+            else if (type === 'are') fb.innerHTML = '✅ fingerprint = something you ARE.';
+            else if (type === 'somewhere') fb.innerHTML = '✅ IP geolocation = somewhere you ARE.';
+            else if (type === 'otp') fb.innerHTML = '⏱️ TOTP is something you HAVE (the device).';
+            else fb.innerHTML = '🤔 try again.';
+        }
+        window.checkFactor = checkFactor;
+
+        // tutor answers (long)
+        function answerTutor() {
+            const q = document.getElementById('tutorQuestion').value.toLowerCase();
+            let ans = "🤓 I'm not sure, but check: FAR = False Acceptance Rate (bad), FRR = False Rejection (annoying).";
+            if (q.includes('attestation')) ans = "Attestation in FIDO2 proves your security key is a genuine model (e.g., YubiKey) using a manufacturer certificate. It's like a birth certificate for the key.";
+            else if (q.includes('far')) ans = "False Acceptance Rate (FAR) – percentage of impostors incorrectly accepted. For high security, FAR must be extremely low (<0.001%).";
+            else if (q.includes('frr')) ans = "False Rejection Rate (FRR) – legitimate users denied. High FRR leads to helpdesk calls. Tuning balances FAR & FRR at CER.";
+            else if (q.includes('fido')) ans = "FIDO2 enables passwordless logins using public-key crypto. Your device creates a key pair, server keeps public key, you prove possession by signing a challenge.";
+            else if (q.includes('passwordless')) ans = "Passwordless means you never type a password. Instead you use a biometric or PIN to unlock a private key stored on your device (TPM, secure enclave).";
+            else if (q.includes('biometric')) ans = "Biometrics measure physical traits. Metrics: FAR (security), FRR (usability), CER (equal error rate). Also liveness detection prevents spoofs.";
+            document.getElementById('tutorAnswer').innerText = ans;
+        }
+        window.answerTutor = answerTutor;
+
+        // scroll progress
+        window.addEventListener('scroll', () => {
+            const winScroll = document.body.scrollTop || document.documentElement.scrollTop;
+            const h = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+            document.getElementById('scrollProgress').style.width = (winScroll/h)*100 + '%';
+        });
+
+        // theme toggle
+        document.getElementById('themeToggle').addEventListener('click', () => {
+            document.body.classList.toggle('light-mode');
+        });
+
+        // easter egg
+        function egg() {
+            document.getElementById('easterEgg').style.display = 'block';
+            setTimeout(() => document.getElementById('easterEgg').style.display = 'none', 3000);
+        }
+        window.egg = egg;
+
+        // audio facts (add click to emoji)
+        document.addEventListener('click', e => {
+            if (e.target.classList.contains('audio-fact')) {
+                alert('🔊 ' + e.target.dataset.fact);
+            }
+        });
+        // add audio-fact to some headers
+        document.querySelectorAll('.card-header').forEach(h => {
+            let sp = document.createElement('span');
+            sp.className = 'audio-fact';
+            sp.dataset.fact = 'The term "password" dates to 1961!';
+            sp.innerText = ' 🔊';
+            sp.style.cursor = 'pointer';
+            h.appendChild(sp);
+        });
+
+        renderQuiz();
+    </script>
+</body>
+</html>
